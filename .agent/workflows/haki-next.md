@@ -5,6 +5,7 @@ description: Auto-detect state and run the next logical workflow step
 # /haki:next
 
 Zero-friction advancement — auto-detect state and immediately invoke next command.
+Perfect for resuming work after a context clear or starting a fresh session.
 
 // turbo-all
 

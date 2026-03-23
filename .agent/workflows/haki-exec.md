@@ -25,7 +25,7 @@ Extract tasks with status "Planned" or "In Progress". If none → suggest `/haki
    node .agent/bin/haki-tools.cjs roadmap update-status [task-id] in_progress --raw
    ```
 
-   b. **Dispatch implementer subagent:**
+   b. **Dispatch implementer subagent (or work directly if no subagent support):**
    - Provide: full task plan from `.haki/tasks/[task-id].md`
    - Read: `.agent/skills/subagent-driven-development/SKILL.md` for methodology
    - Execute TDD steps: write test → verify fail → implement → verify pass
@@ -37,11 +37,18 @@ Extract tasks with status "Planned" or "In Progress". If none → suggest `/haki
    d. **Code quality review** (subagent):
    - Check naming, error handling, test coverage
 
-   e. **Mark complete:**
+   e. **Mark complete and Clear Context:**
 
    ```bash
    node .agent/bin/haki-tools.cjs roadmap update-status [task-id] completed --raw
    ```
+
+   **CRITICAL: Strict Auto-Clear Rule**
+   To prevent token bloat and cross-task hallucination, you MUST clear your context window before starting the next task:
+   - **Claude Code:** Run the built-in `/clear` command to wipe session history, then run `/haki:next`.
+   - **Cursor/Other Agents:** Stop here. Instruct the user to start a **New Chat / New Composer Session** and run `/haki:next` to pick up the next task.
+
+   Do NOT continue executing subsequent tasks in the same bloated context window.
 
 3. **Handling failures:**
    - DONE → next task
