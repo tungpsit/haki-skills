@@ -1,0 +1,15 @@
+{
+  "project": {
+    "name": "",
+    "created": ""
+  },
+  "ui_design_skill": "ui-ux-pro-max",
+  "ui_design_variant": null,
+  "workflow": {
+    "auto_research": true,
+    "auto_commit": true,
+    "tdd_first": true,
+    "plan_review_loops": 3,
+    "parallelization": true
+  }
+}

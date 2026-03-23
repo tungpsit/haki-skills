@@ -1,0 +1,41 @@
+{
+  "name": "haki-skills",
+  "version": "0.1.0",
+  "description": "AI workflow system — project initialization, task planning, and execution with TDD-first approach",
+  "bin": {
+    "haki-skills": "./bin/install.js",
+    "haki-tools": "./.agent/bin/haki-tools.cjs"
+  },
+  "files": [
+    "bin/",
+    ".agent/bin/",
+    ".agent/skills/",
+    ".agent/templates/",
+    ".agent/references/",
+    ".agent/workflows/"
+  ],
+  "scripts": {
+    "test": "node --test tests/",
+    "postinstall": "echo '✅ haki-skills installed. Run: npx haki-skills [target-dir]'"
+  },
+  "keywords": [
+    "workflow",
+    "ai-coding",
+    "task-management",
+    "project-management",
+    "tdd",
+    "subagent",
+    "antigravity",
+    "claude-code",
+    "gemini"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/user/haki-skills"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
