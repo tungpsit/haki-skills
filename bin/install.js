@@ -4,8 +4,14 @@
  * Haki Init — Install haki workflow system into a target project
  *
  * Usage:
- *   node bin/install.js [target-dir]     # Default: current directory
- *   node bin/install.js --help
+ *   npx haki-skills [target-dir] [options]
+ *
+ * Options:
+ *   --for <agent>   Generate config for a specific agent (default: antigravity)
+ *                   agents: antigravity, claude, codex, cursor, gemini, all
+ *                   comma-separated: --for claude,cursor
+ *   --force         Overwrite existing .agent/ files
+ *   --help          Show this help
  *
  * Installs everything into .agent/ (Antigravity standard):
  *   .agent/workflows/haki-*.md   Command entry points
@@ -30,6 +36,51 @@ const COPY_MAP = [
   { src: ".agent/references", dst: ".agent/references" },
   { src: ".agent/workflows", dst: ".agent/workflows", pattern: /^haki-/ },
 ];
+
+// Registry of agent → config file to generate
+const AGENT_REGISTRY = {
+  antigravity: null, // built-in: .agent/ is the config
+  gemini: null, // alias for antigravity
+  claude: {
+    template: ".agent/templates/claude.md",
+    target: "CLAUDE.md",
+    label: "CLAUDE.md (Claude Code)",
+  },
+  codex: {
+    template: ".agent/templates/agents.md",
+    target: "AGENTS.md",
+    label: "AGENTS.md (Codex / cross-agent)",
+  },
+  cursor: {
+    template: ".agent/templates/cursor-haki.mdc",
+    target: path.join(".cursor", "rules", "haki.mdc"),
+    label: ".cursor/rules/haki.mdc (Cursor)",
+  },
+};
+
+const KNOWN_AGENTS = Object.keys(AGENT_REGISTRY);
+
+// Parse --for value: "claude,cursor" → ["claude", "cursor"]
+function parseForArg(args) {
+  const idx = args.indexOf("--for");
+  if (idx === -1) return ["antigravity"];
+  const val = args[idx + 1];
+  if (!val || val.startsWith("-")) {
+    console.error("Error: --for requires a value, e.g. --for claude");
+    console.error(`  Known agents: ${KNOWN_AGENTS.join(", ")}`);
+    process.exit(1);
+  }
+  if (val === "all") return KNOWN_AGENTS.filter((a) => a !== "gemini");
+  const selected = val.split(",").map((s) => s.trim().toLowerCase());
+  // Check truly unknown agents
+  const invalid = selected.filter((a) => !KNOWN_AGENTS.includes(a));
+  if (invalid.length) {
+    console.error(`Error: Unknown agent(s): ${invalid.join(", ")}`);
+    console.error(`  Known agents: ${KNOWN_AGENTS.join(", ")}, all`);
+    process.exit(1);
+  }
+  return selected;
+}
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
 
@@ -86,19 +137,33 @@ function main() {
     console.log(`
 Haki Init — Install haki workflow system into a project
 
-Usage:  node bin/install.js [target-dir]
-Options:
-  --force    Overwrite existing files
-  --help     Show this help
+Usage:  npx haki-skills [target-dir] [options]
 
-All files install into .agent/ (Antigravity standard).
-Runtime data goes to .haki/ (gitignored).
+Options:
+  --for <agent>  Generate config for a specific agent (default: antigravity)
+                 Agents: ${KNOWN_AGENTS.join(", ")}, all
+                 Comma-separated: --for claude,cursor
+  --force        Overwrite existing .agent/ files
+  --help         Show this help
+
+Examples:
+  npx haki-skills                      # Antigravity (default)
+  npx haki-skills --for claude         # Claude Code
+  npx haki-skills --for cursor         # Cursor
+  npx haki-skills --for codex          # Codex / AGENTS.md
+  npx haki-skills --for claude,cursor  # Multiple agents
+  npx haki-skills --for all            # All agents
 `);
     process.exit(0);
   }
 
   const force = args.includes("--force");
-  const targetDir = path.resolve(args.find((a) => !a.startsWith("-")) || ".");
+  const selectedAgents = parseForArg(args);
+  const targetDir = path.resolve(
+    args.find(
+      (a) => !a.startsWith("-") && a !== args[args.indexOf("--for") + 1],
+    ) || ".",
+  );
 
   if (!fs.existsSync(targetDir)) {
     console.error(`Error: Target directory does not exist: ${targetDir}`);
@@ -132,35 +197,31 @@ Runtime data goes to .haki/ (gitignored).
   }
   console.log("   ✅ .haki/ (runtime directory)");
 
-  // Generate agent config files (non-destructive — never overwrite existing)
-  const AGENT_CONFIGS = [
-    {
-      template: ".agent/templates/agents.md",
-      target: "AGENTS.md",
-      label: "AGENTS.md (Codex / cross-agent)",
-    },
-    {
-      template: ".agent/templates/claude.md",
-      target: "CLAUDE.md",
-      label: "CLAUDE.md (Claude Code)",
-    },
-    {
-      template: ".agent/templates/cursor-haki.mdc",
-      target: path.join(".cursor", "rules", "haki.mdc"),
-      label: ".cursor/rules/haki.mdc (Cursor)",
-    },
-  ];
+  // Generate agent config files for selected agents (non-destructive)
+  const agentConfigs = selectedAgents
+    .map((a) => AGENT_REGISTRY[a])
+    .filter(Boolean); // null = antigravity/gemini, no extra file needed
 
-  for (const { template, target, label } of AGENT_CONFIGS) {
-    const dst = path.join(targetDir, target);
-    if (fs.existsSync(dst)) {
-      console.log(`   ⏭️  ${label} (already exists, skipped)`);
-    } else {
-      const src = path.join(SOURCE_ROOT, template);
-      if (fs.existsSync(src)) {
-        fs.mkdirSync(path.dirname(dst), { recursive: true });
-        fs.copyFileSync(src, dst);
-        console.log(`   ✅ ${label}`);
+  if (
+    agentConfigs.length === 0 &&
+    !selectedAgents.includes("antigravity") &&
+    !selectedAgents.includes("gemini")
+  ) {
+    // Should not happen, but guard anyway
+  }
+
+  if (agentConfigs.length > 0) {
+    for (const { template, target, label } of agentConfigs) {
+      const dst = path.join(targetDir, target);
+      if (fs.existsSync(dst)) {
+        console.log(`   ⏭️  ${label} (already exists, skipped)`);
+      } else {
+        const src = path.join(SOURCE_ROOT, template);
+        if (fs.existsSync(src)) {
+          fs.mkdirSync(path.dirname(dst), { recursive: true });
+          fs.copyFileSync(src, dst);
+          console.log(`   ✅ ${label}`);
+        }
       }
     }
   }

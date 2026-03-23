@@ -23,8 +23,13 @@ Haki gives AI coding agents a repeatable workflow: ask the right questions, rese
 ### Install into any project
 
 ```bash
-npx haki-skills            # installs into current directory
-npx haki-skills ./my-app   # or specify a target
+npx haki-skills                      # Antigravity (default)
+npx haki-skills --for claude         # + CLAUDE.md (Claude Code)
+npx haki-skills --for cursor         # + .cursor/rules/haki.mdc (Cursor)
+npx haki-skills --for codex          # + AGENTS.md (Codex)
+npx haki-skills --for claude,cursor  # Multiple agents
+npx haki-skills --for all            # All agents
+npx haki-skills ./my-app --for claude  # Target a specific directory
 ```
 
 ### Start building
