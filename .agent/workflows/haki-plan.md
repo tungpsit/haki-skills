@@ -20,7 +20,8 @@ node .agent/bin/haki-tools.cjs roadmap next-task --raw
 - Text description → discuss as new feature → add to ROADMAP → plan
 
 2. **Research** (if enabled):
-   - Use Context7 MCP for library docs
+   - Read: `.agent/skills/context7-research/SKILL.md`
+   - Use Context7 MCP for library docs (verified versions, install commands)
    - Analyze codebase for existing patterns
    - Read relevant `.agent/skills/` for methodology (TDD, etc.)
 

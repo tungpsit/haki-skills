@@ -45,6 +45,8 @@ If `initialized: true` and has project, warn user and confirm reinitialize.
 
 4. **Research (4 parallel subagents)**
    - Agent 1 → `.haki/research/STACK.md` (tech options, trade-offs)
+     - **MUST read:** `.agent/skills/context7-research/SKILL.md`
+     - Use Context7 MCP to verify every library version before writing
    - Agent 2 → `.haki/research/FEATURES.md` (feature analysis, must vs nice-to-have)
    - Agent 3 → `.haki/research/ARCHITECTURE.md` (system design, data flow)
    - Agent 4 → `.haki/research/PITFALLS.md` (anti-patterns, known issues)
