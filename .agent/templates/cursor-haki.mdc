@@ -1,0 +1,17 @@
+---
+description: Haki AI workflow system — structured project init, task planning, TDD-first execution
+alwaysApply: true
+---
+
+# Haki Workflow System
+
+Read `AGENTS.md` in the project root for the full reference (commands, skills, CLI tools, project context paths).
+
+## Quick Reference
+
+- **Start:** `/haki:next` — auto-detects state, invokes next step
+- **Workflows:** `.agent/workflows/haki-*.md`
+- **Skills:** `.agent/skills/` — read `SKILL.md` before applying
+- **CLI:** `node .agent/bin/haki-tools.cjs state detect`
+- **Project spec:** `.haki/PROJECT.md`
+- **Roadmap:** `.haki/ROADMAP.md`

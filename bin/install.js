@@ -132,6 +132,39 @@ Runtime data goes to .haki/ (gitignored).
   }
   console.log("   ✅ .haki/ (runtime directory)");
 
+  // Generate agent config files (non-destructive — never overwrite existing)
+  const AGENT_CONFIGS = [
+    {
+      template: ".agent/templates/agents.md",
+      target: "AGENTS.md",
+      label: "AGENTS.md (Codex / cross-agent)",
+    },
+    {
+      template: ".agent/templates/claude.md",
+      target: "CLAUDE.md",
+      label: "CLAUDE.md (Claude Code)",
+    },
+    {
+      template: ".agent/templates/cursor-haki.mdc",
+      target: path.join(".cursor", "rules", "haki.mdc"),
+      label: ".cursor/rules/haki.mdc (Cursor)",
+    },
+  ];
+
+  for (const { template, target, label } of AGENT_CONFIGS) {
+    const dst = path.join(targetDir, target);
+    if (fs.existsSync(dst)) {
+      console.log(`   ⏭️  ${label} (already exists, skipped)`);
+    } else {
+      const src = path.join(SOURCE_ROOT, template);
+      if (fs.existsSync(src)) {
+        fs.mkdirSync(path.dirname(dst), { recursive: true });
+        fs.copyFileSync(src, dst);
+        console.log(`   ✅ ${label}`);
+      }
+    }
+  }
+
   // Update .gitignore
   if (fs.existsSync(path.join(targetDir, ".git"))) {
     if (ensureGitignore(targetDir))

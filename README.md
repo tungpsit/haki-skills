@@ -6,7 +6,9 @@
 
 **AI workflow system for structured project initialization, task planning, and TDD-first execution.**
 
-Haki gives AI coding agents (Antigravity, Claude Code, Gemini) a repeatable workflow: ask the right questions, research the tech stack, plan with tests first, and execute with subagents — so projects start with clarity instead of guesswork.
+Haki gives AI coding agents a repeatable workflow: ask the right questions, research the tech stack, plan with tests first, and execute with subagents — so projects start with clarity instead of guesswork.
+
+**Works with:** Antigravity · Claude Code · Cursor · Codex · Gemini CLI
 
 ## Why Haki
 
@@ -35,7 +37,7 @@ npx haki-skills ./my-app   # or specify a target
 /haki:exec           # execute planned tasks with subagents
 ```
 
-> **Prerequisite:** An AI coding agent that supports Antigravity-style workflows (slash commands via `.agent/workflows/`).
+> **Prerequisite:** An AI coding agent that reads workflow files. The installer generates entry-point configs for Cursor (`.cursor/rules/`), Claude Code (`CLAUDE.md`), and Codex (`AGENTS.md`) automatically.
 
 ## Workflow
 
@@ -60,20 +62,25 @@ new-project → discuss → plan → exec
 
 ## What Gets Installed
 
-Everything installs into `.agent/` (Antigravity standard):
+Core files install into `.agent/`. Agent configs are generated at the project root:
 
 ```
+AGENTS.md                # Cross-agent instructions (Codex + others)
+CLAUDE.md                # Claude Code entry point
+.cursor/rules/haki.mdc   # Cursor rules
 .agent/
-├── workflows/       # 8 haki command files
-├── bin/             # CLI tools (haki-tools.cjs)
-├── skills/          # 18 skill folders
-├── templates/       # project, roadmap, task templates
-└── references/      # questioning guide, UI formatting
-.haki/               # runtime data (gitignored)
+├── workflows/           # 8 haki command files
+├── bin/                 # CLI tools (haki-tools.cjs)
+├── skills/              # 18 skill folders
+├── templates/           # project, roadmap, task templates
+└── references/          # questioning guide, UI formatting
+.haki/                   # runtime data (gitignored)
 ├── research/
 ├── codebase/
 └── tasks/
 ```
+
+> Agent config files are **non-destructive** — the installer skips them if they already exist, so your custom configs are never overwritten.
 
 ### Included Skills
 
@@ -108,7 +115,7 @@ node .agent/bin/haki-tools.cjs state json
 ## Requirements
 
 - **Node.js** ≥ 18
-- An AI coding agent with slash-command workflow support (Antigravity, Claude Code, Gemini CLI)
+- An AI coding agent: [Antigravity](https://github.com/AcademySoftwareFoundation/antigravity) · [Claude Code](https://docs.anthropic.com/en/docs/claude-code) · [Cursor](https://cursor.com) · [Codex](https://openai.com/codex) · Gemini CLI
 - [Context7 MCP server](https://context7.com) (optional, for `/haki:research` and verified library versions)
 
 ## Contributing
