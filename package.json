@@ -33,7 +33,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/user/haki-skills"
+    "url": "https://github.com/tungpsit/haki-skills"
   },
   "engines": {
     "node": ">=18"
