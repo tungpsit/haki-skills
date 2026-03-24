@@ -19,27 +19,33 @@ node .agent/bin/haki-tools.cjs roadmap next-task --raw
 - No id → pick next task needing planning
 - Text description → discuss as new feature → add to ROADMAP → plan
 
-2. **Research** (if enabled):
+2. **Mark as In Progress in ROADMAP.md:**
+
+```bash
+node .agent/bin/haki-tools.cjs roadmap update-status [task-id] in_progress --raw
+```
+
+3. **Research** (if enabled):
    - Read: `.agent/skills/context7-research/SKILL.md`
    - Use Context7 MCP for library docs (verified versions, install commands)
    - Analyze codebase for existing patterns
    - Read relevant `.agent/skills/` for methodology (TDD, etc.)
 
-3. **Create TDD-first plan** → `.haki/tasks/[task-id].md`
+4. **Create TDD-first plan** → `.haki/tasks/[task-id].md`
    - Read template: `.agent/templates/task.md`
    - Each step: write test → verify FAIL → implement → verify PASS → commit
    - Exact file paths, complete code, exact test commands
    - Each step ≤ 5 minutes of work
 
-4. **Plan review loop** (max 3 iterations):
+5. **Plan review loop** (max 3 iterations):
    - Dispatch reviewer subagent: completeness, TDD compliance, file paths
    - If issues → fix and re-review
    - If approved → proceed
 
-5. **Update ROADMAP status:**
+6. **Update ROADMAP status to Planned:**
 
 ```bash
 node .agent/bin/haki-tools.cjs roadmap update-status [task-id] planned --raw
 ```
 
-6. **Next:** `/haki:exec`
+7. **Next:** `/haki:exec`
