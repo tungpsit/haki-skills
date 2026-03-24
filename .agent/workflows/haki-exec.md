@@ -45,6 +45,7 @@ Extract tasks with status "Planned" or "In Progress". If none → suggest `/haki
 
    **CRITICAL: Strict Auto-Clear Rule**
    To prevent token bloat and cross-task hallucination, you MUST clear your context window before starting the next task:
+   - **Antigravity:** Run the built-in `/clear` command to wipe session history, then run `/haki:next`.
    - **Claude Code:** Run the built-in `/clear` command to wipe session history, then run `/haki:next`.
    - **Cursor/Other Agents:** Stop here. Instruct the user to start a **New Chat / New Composer Session** and run `/haki:next` to pick up the next task.
 

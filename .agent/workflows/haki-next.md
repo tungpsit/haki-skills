@@ -25,7 +25,7 @@ node .agent/bin/haki-tools.cjs state json --raw
 | Tasks ⏳ Pending   | Discuss first pending | `/haki:discuss [task-id]` |
 | Tasks 💬 Discussed | Plan first discussed  | `/haki:plan [task-id]`    |
 | Tasks 📋 Planned   | Execute               | `/haki:exec`              |
-| All ✅ Complete    | Milestone summary     | Show completion           |
+| All ✅ Complete    | New milestone or done | `/haki:new-milestone`     |
 
 3. **Display status and invoke immediately** (no confirmation):
 
