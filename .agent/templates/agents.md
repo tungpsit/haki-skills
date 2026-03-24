@@ -8,15 +8,17 @@ This project uses **Haki** — an AI workflow system for structured project init
 
 Run these as slash commands in your AI coding agent:
 
-| Command              | What it does                                                                |
-| -------------------- | --------------------------------------------------------------------------- |
-| `/haki:next`         | Auto-detect project state and invoke the right next step                    |
-| `/haki:new-project`  | Socratic discovery → parallel research → `PROJECT.md` + `ROADMAP.md`        |
-| `/haki:discuss`      | Resolve gray areas for a task — adaptive Q&A, one decision at a time        |
-| `/haki:plan`         | Create step-by-step TDD plan: write test → fail → implement → pass → commit |
-| `/haki:exec`         | Execute planned tasks with subagents and review gates                       |
-| `/haki:research`     | Look up library versions/docs via Context7 MCP                              |
-| `/haki:map-codebase` | Parallel agents map stack, architecture, conventions, and structure         |
+| Command               | What it does                                                                |
+| --------------------- | --------------------------------------------------------------------------- |
+| `/haki:next`          | Auto-detect project state and invoke the right next step                    |
+| `/haki:new-project`   | Socratic discovery → parallel research → `PROJECT.md` + `ROADMAP.md`        |
+| `/haki:discuss`       | Resolve gray areas for a task — adaptive Q&A, one decision at a time        |
+| `/haki:plan`          | Create step-by-step TDD plan: write test → fail → implement → pass → commit |
+| `/haki:exec`          | Execute planned tasks with subagents and review gates                       |
+| `/haki:research`      | Look up library versions/docs via Context7 MCP                              |
+| `/haki:new-milestone` | Define a new milestone (phase) and add tasks to `ROADMAP.md`                |
+| `/haki:docs`          | Generate user guides with screenshots for project modules                   |
+| `/haki:map-codebase`  | Parallel agents map stack, architecture, conventions, and structure         |
 
 Workflow definitions live in `.agent/workflows/haki-*.md`.
 
