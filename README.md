@@ -40,6 +40,7 @@ npx haki-skills ./my-app --for claude  # Target a specific directory
 /haki:discuss        # extract decisions for a task through adaptive Q&A
 /haki:plan           # create TDD-first implementation plan
 /haki:exec           # execute planned tasks with subagents
+/haki:docs           # generate user guides with screenshots for modules
 ```
 
 > **Prerequisite:** An AI coding agent that reads workflow files. The installer generates entry-point configs for Cursor (`.cursor/rules/`), Claude Code (`CLAUDE.md`), and Codex (`AGENTS.md`) automatically.
@@ -54,16 +55,18 @@ new-project → discuss → plan → exec
      └── /haki:next (auto) ─────┘
 ```
 
-| Command              | What it does                                                                  |
-| -------------------- | ----------------------------------------------------------------------------- |
-| `/haki:new-project`  | Socratic discovery → 4 parallel research agents → `PROJECT.md` + `ROADMAP.md` |
-| `/haki:discuss`      | Resolve gray areas for a specific task — one decision at a time               |
-| `/haki:plan`         | Create step-by-step TDD plan: write test → fail → implement → pass → commit   |
-| `/haki:exec`         | Dispatch subagents to execute all planned tasks with review gates             |
-| `/haki:next`         | State machine — detects progress and invokes the right command                |
-| `/haki:research`     | Look up library versions/docs via Context7 MCP                                |
-| `/haki:map-codebase` | 4 parallel agents map stack, architecture, conventions, structure             |
-| `/haki:init`         | Re-run the installer (with `--force` to overwrite)                            |
+| Command               | What it does                                                                  |
+| --------------------- | ----------------------------------------------------------------------------- |
+| `/haki:new-project`   | Socratic discovery → 4 parallel research agents → `PROJECT.md` + `ROADMAP.md` |
+| `/haki:discuss`       | Resolve gray areas for a specific task — one decision at a time               |
+| `/haki:plan`          | Create step-by-step TDD plan: write test → fail → implement → pass → commit   |
+| `/haki:exec`          | Dispatch subagents to execute all planned tasks with review gates             |
+| `/haki:next`          | State machine — detects progress and invokes the right command                |
+| `/haki:research`      | Look up library versions/docs via Context7 MCP                                |
+| `/haki:new-milestone` | Define a new milestone (phase) and add tasks to `ROADMAP.md`                  |
+| `/haki:docs`          | Generate user guides with screenshots for project modules                     |
+| `/haki:map-codebase`  | 4 parallel agents map stack, architecture, conventions, structure             |
+| `/haki:init`          | Re-run the installer (with `--force` to overwrite)                            |
 
 ## What Gets Installed
 
@@ -74,15 +77,16 @@ AGENTS.md                # Cross-agent instructions (Codex + others)
 CLAUDE.md                # Claude Code entry point
 .cursor/rules/haki.mdc   # Cursor rules
 .agent/
-├── workflows/           # 8 haki command files
+├── workflows/           # 10 haki command files
 ├── bin/                 # CLI tools (haki-tools.cjs)
-├── skills/              # 18 skill folders
+├── skills/              # 19 skill folders
 ├── templates/           # project, roadmap, task templates
 └── references/          # questioning guide, UI formatting
 .haki/                   # runtime data (gitignored)
 ├── research/
 ├── codebase/
-└── tasks/
+├── tasks/
+└── docs/user-guides/    # generated user documentation
 ```
 
 > Agent config files are **non-destructive** — the installer skips them if they already exist, so your custom configs are never overwritten.
@@ -96,6 +100,7 @@ CLAUDE.md                # Claude Code entry point
 | **Execution**   | `dispatching-parallel-agents`, `verification-before-completion`, `full-output-enforcement`                                                       |
 | **Design**      | `ui-ux-pro-max`, `taste-skill`, `soft-skill`, `brutalist-skill`, `minimalist-skill`, `stitch-skill`, `redesign-skill`, `industrial-brutalist-ui` |
 | **Research**    | `context7-research`                                                                                                                              |
+| **Docs**        | `user-docs-generator`                                                                                                                            |
 
 ### CLI Tools
 
