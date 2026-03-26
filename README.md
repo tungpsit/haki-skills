@@ -40,6 +40,9 @@ npx haki-skills ./my-app --for claude  # Target a specific directory
 /haki:discuss        # extract decisions for a task through adaptive Q&A
 /haki:plan           # create TDD-first implementation plan
 /haki:exec           # execute planned tasks with subagents
+/haki:e2e            # init / generate / run E2E tests with Playwright
+/haki:e2e-gen        # generate test specs from natural-language descriptions
+/haki:api-test       # write and run API integration tests with Vitest
 /haki:docs           # generate user guides with screenshots for modules
 ```
 
@@ -64,6 +67,9 @@ new-project → discuss → plan → exec
 | `/haki:next`          | State machine — detects progress and invokes the right command                |
 | `/haki:research`      | Look up library versions/docs via Context7 MCP                                |
 | `/haki:new-milestone` | Define a new milestone (phase) and add tasks to `ROADMAP.md`                  |
+| `/haki:e2e`           | Init, generate, or run E2E tests with Playwright (TDD mandatory)              |
+| `/haki:e2e-gen`       | Generate Playwright specs from natural-language intent (browser-aware + auth) |
+| `/haki:api-test`      | Write and run API integration tests with Vitest + fetch                       |
 | `/haki:docs`          | Generate user guides with screenshots for project modules                     |
 | `/haki:map-codebase`  | 4 parallel agents map stack, architecture, conventions, structure             |
 | `/haki:init`          | Re-run the installer (with `--force` to overwrite)                            |
@@ -77,9 +83,9 @@ AGENTS.md                # Cross-agent instructions (Codex + others)
 CLAUDE.md                # Claude Code entry point
 .cursor/rules/haki.mdc   # Cursor rules
 .agent/
-├── workflows/           # 10 haki command files
+├── workflows/           # 13 haki command files
 ├── bin/                 # CLI tools (haki-tools.cjs)
-├── skills/              # 19 skill folders
+├── skills/              # 22 skill folders
 ├── templates/           # project, roadmap, task templates
 └── references/          # questioning guide, UI formatting
 .haki/                   # runtime data (gitignored)
@@ -97,9 +103,10 @@ CLAUDE.md                # Claude Code entry point
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Planning**    | `brainstorming`, `writing-plans`, `executing-plans`                                                                                              |
 | **Development** | `subagent-driven-development`, `test-driven-development`, `systematic-debugging`                                                                 |
+| **Testing**     | `playwright-automation`, `playwright-intent-to-spec`, `api-testing`                                                                              |
 | **Execution**   | `dispatching-parallel-agents`, `verification-before-completion`, `full-output-enforcement`                                                       |
 | **Design**      | `ui-ux-pro-max`, `taste-skill`, `soft-skill`, `brutalist-skill`, `minimalist-skill`, `stitch-skill`, `redesign-skill`, `industrial-brutalist-ui` |
-| **Research**    | `context7-research`                                                                                                                              |
+| **Research**    | `context7-research`, `taste-research`                                                                                                            |
 | **Docs**        | `user-docs-generator`                                                                                                                            |
 
 ### CLI Tools
