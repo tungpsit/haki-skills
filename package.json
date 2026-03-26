@@ -1,6 +1,6 @@
 {
   "name": "haki-skills",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "AI workflow system — project initialization, task planning, and execution with TDD-first approach",
   "bin": {
     "haki-skills": "./bin/install.js",
