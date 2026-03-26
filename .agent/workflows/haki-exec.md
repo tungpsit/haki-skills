@@ -37,7 +37,21 @@ Extract tasks with status "Planned" or "In Progress". If none → suggest `/haki
    d. **Code quality review** (subagent):
    - Check naming, error handling, test coverage
 
-   e. **Mark complete and Clear Context:**
+   e. **Update task file with results (MANDATORY):**
+   - Open `.haki/tasks/[task-id].md`
+   - Fill **Implementation Details** section:
+     - Files Changed table (path, action, notes)
+     - Key Decisions & Deviations from plan
+   - Fill **Execution Results** section:
+     - Test Results (pass/fail count)
+     - Build Status
+     - Lint Status
+     - Issues Encountered
+     - Completed At (timestamp)
+   - Check off verification items
+   - **Do NOT skip this step** — incomplete task files will be rejected
+
+   f. **Mark complete and Clear Context:**
 
    ```bash
    node .agent/bin/haki-tools.cjs roadmap update-status [task-id] completed --raw

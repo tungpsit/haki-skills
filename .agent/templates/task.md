@@ -56,8 +56,39 @@ git commit -m "feat: {{COMMIT_MSG}}"
 
 ---
 
+## Implementation Details
+
+> **Filled by the executing agent after each step.** Do NOT leave blank.
+
+### Files Changed
+
+| File   | Action                   | Notes               |
+| ------ | ------------------------ | ------------------- |
+| _path_ | Created/Modified/Deleted | _brief description_ |
+
+### Key Decisions & Deviations
+
+- _Any deviation from the plan and why_
+- _Runtime decision that wasn't in the plan_
+
+---
+
+## Execution Results
+
+> **Filled by the executing agent after task completion.** Do NOT leave blank.
+
+- **Test Results:** _e.g. 12/12 passed_
+- **Build Status:** _e.g. ✅ Clean build_
+- **Lint Status:** _e.g. ✅ No errors_
+- **Issues Encountered:** _e.g. None / describe blockers_
+- **Completed At:** _timestamp_
+
+---
+
 ## Verification
 
 - [ ] All tests pass
 - [ ] Acceptance criteria from ROADMAP met
 - [ ] No lint errors
+- [ ] Implementation Details section filled
+- [ ] Execution Results section filled

@@ -95,9 +95,21 @@ Playwright E2E testing workflow. TypeScript only, TDD mandatory.
 
 **TDD MANDATORY: Tests MUST fail first (RED phase).**
 
+0. **Auto-detect existing specs:**
+   - Scan `e2e/tests/` and `tests/` for existing `*.spec.ts` files matching `[feature]`
+   - If **specs already exist** → skip to step 2 (Page Objects)
+   - If **no specs found** → proceed to step 0a
+
+   **0a. Generate spec from intent (via `playwright-intent-to-spec`):**
+   - Read `.agent/skills/playwright-intent-to-spec/SKILL.md`
+   - Ask user for a natural-language test description (Vietnamese or English)
+   - Parse intent → identify critical ambiguities → **ask user to clarify** before generating
+   - Generate draft `tests/[feature].spec.ts` following the skill's hard rules
+   - Show generated spec for user review before continuing
+
 1. **Analyze the feature:**
    - Check `.haki/specs/` or `.haki/tasks/` for feature description
-   - If no spec exists, ask user to describe the user flow
+   - If no spec exists (and step 0a was skipped), ask user to describe the user flow
    - Identify: pages visited, actions performed, expected outcomes
 
 2. **Create Page Object(s)** if not already existing:
