@@ -25,19 +25,23 @@ Extract tasks with status "Planned" or "In Progress". If none → suggest `/haki
    node .agent/bin/haki-tools.cjs roadmap update-status [task-id] in_progress --raw
    ```
 
-   b. **Dispatch implementer subagent (or work directly if no subagent support):**
+   b. **Pre-flight check (MANDATORY):**
+   - Verify `.haki/tasks/[task-id].md` exists and has Implementation Steps
+   - If missing → create from `.agent/templates/task.md` and warn, or run `/haki:plan [task-id]` first
+
+   c. **Dispatch implementer subagent (or work directly if no subagent support):**
    - Provide: full task plan from `.haki/tasks/[task-id].md`
    - Read: `.agent/skills/subagent-driven-development/SKILL.md` for methodology
    - Execute TDD steps: write test → verify fail → implement → verify pass
    - Atomic commit per step
 
-   c. **Spec compliance review** (subagent):
+   d. **Spec compliance review** (subagent):
    - Verify implementation matches plan + acceptance criteria
 
-   d. **Code quality review** (subagent):
+   e. **Code quality review** (subagent):
    - Check naming, error handling, test coverage
 
-   e. **Update task file with results (MANDATORY):**
+   f. **Update task file with results (MANDATORY):**
    - Open `.haki/tasks/[task-id].md`
    - Fill **Implementation Details** section:
      - Files Changed table (path, action, notes)
@@ -51,7 +55,7 @@ Extract tasks with status "Planned" or "In Progress". If none → suggest `/haki
    - Check off verification items
    - **Do NOT skip this step** — incomplete task files will be rejected
 
-   f. **Mark complete and Clear Context:**
+   g. **Mark complete and Clear Context:**
 
    ```bash
    node .agent/bin/haki-tools.cjs roadmap update-status [task-id] completed --raw

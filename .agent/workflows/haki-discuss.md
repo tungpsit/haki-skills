@@ -42,12 +42,20 @@ node .agent/bin/haki-tools.cjs roadmap update-status [task-id] in_progress --raw
    - Dig deeper until each decision is clear
    - Capture decisions concisely
 
-6. **Save decisions** to `.haki/tasks/[task-id].md`
+6. **Save decisions** to `.haki/tasks/[task-id].md` **(MANDATORY)**:
+   - If file does NOT exist → create it from `.agent/templates/task.md`
+   - Fill `Context & Decisions` section with all captured decisions
+   - **Do NOT skip this step** — the file must exist before moving to plan
 
 7. **Update ROADMAP status to Discussed:**
 
 ```bash
 node .agent/bin/haki-tools.cjs roadmap update-status [task-id] discussed --raw
 ```
+
+⚠️ **Verify both files are updated before finishing:**
+
+- `.haki/tasks/[task-id].md` exists and has decisions
+- ROADMAP status is `💬 Discussed`
 
 8. **Next:** `/haki:plan [task-id]`

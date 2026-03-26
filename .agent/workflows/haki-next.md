@@ -9,6 +9,33 @@ Perfect for resuming work after a context clear or starting a fresh session.
 
 // turbo-all
 
+## ⚠️ MANDATORY: File Tracking Rules (READ FIRST)
+
+**Every workflow phase MUST maintain two files. Skipping = broken state.**
+
+### 1. Task File: `.haki/tasks/[task-id].md`
+
+| Phase       | Required Action                                                          |
+| ----------- | ------------------------------------------------------------------------ |
+| **discuss** | CREATE file if missing (from `.agent/templates/task.md`). Save decisions |
+| **plan**    | UPDATE file with implementation steps                                    |
+| **exec**    | UPDATE file with Implementation Details + Execution Results              |
+
+### 2. ROADMAP: `.haki/ROADMAP.md`
+
+| Phase       | Required Action                                                    |
+| ----------- | ------------------------------------------------------------------ |
+| **discuss** | `update-status [task-id] in_progress` → then `discussed` on finish |
+| **plan**    | `update-status [task-id] in_progress` → then `planned` on finish   |
+| **exec**    | `update-status [task-id] in_progress` → then `completed` on finish |
+
+**Before invoking any sub-workflow, verify:**
+
+- `.haki/tasks/[task-id].md` exists (create from template if missing)
+- `ROADMAP.md` status matches reality (fix stale status if needed)
+
+---
+
 ## Steps
 
 1. **Detect state:**
