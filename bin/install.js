@@ -13,13 +13,11 @@
  *   --force         Overwrite existing .agent/ files
  *   --help          Show this help
  *
- * Installs everything into .agent/ (Antigravity standard):
- *   .agent/workflows/haki-*.md   Command entry points
- *   .agent/bin/                  CLI tools
- *   .agent/skills/               All skills
- *   .agent/templates/            Templates
- *   .agent/references/           References
- *   .haki/                       Runtime data (gitignored)
+ * Agent-specific install paths:
+ *   antigravity/gemini:  .agent/workflows/, .agent/skills/, .agent/bin/, etc.
+ *   claude:              .claude/workflows/, .claude/skills/ + skill wrappers for workflows
+ *   codex:               .agent/ (standard)
+ *   cursor:              .agent/ (standard)
  */
 
 const fs = require("fs");
@@ -29,12 +27,22 @@ const path = require("path");
 
 const SOURCE_ROOT = path.resolve(__dirname, "..");
 
-const COPY_MAP = [
+// Default copy map (for antigravity/gemini/codex/cursor)
+const DEFAULT_COPY_MAP = [
   { src: ".agent/bin", dst: ".agent/bin" },
   { src: ".agent/skills", dst: ".agent/skills" },
   { src: ".agent/templates", dst: ".agent/templates" },
   { src: ".agent/references", dst: ".agent/references" },
   { src: ".agent/workflows", dst: ".agent/workflows", pattern: /^haki-/ },
+];
+
+// Claude Code copy map — uses .claude/ paths
+const CLAUDE_COPY_MAP = [
+  { src: ".agent/bin", dst: ".agent/bin" },
+  { src: ".agent/skills", dst: ".claude/skills" },
+  { src: ".agent/templates", dst: ".agent/templates" },
+  { src: ".agent/references", dst: ".agent/references" },
+  { src: ".agent/workflows", dst: ".claude/workflows", pattern: /^haki-/ },
 ];
 
 // Registry of agent → config file to generate
@@ -45,6 +53,7 @@ const AGENT_REGISTRY = {
     template: ".agent/templates/claude.md",
     target: "CLAUDE.md",
     label: "CLAUDE.md (Claude Code)",
+    copyMap: CLAUDE_COPY_MAP,
   },
   codex: {
     template: ".agent/templates/agents.md",
@@ -72,7 +81,6 @@ function parseForArg(args) {
   }
   if (val === "all") return KNOWN_AGENTS.filter((a) => a !== "gemini");
   const selected = val.split(",").map((s) => s.trim().toLowerCase());
-  // Check truly unknown agents
   const invalid = selected.filter((a) => !KNOWN_AGENTS.includes(a));
   if (invalid.length) {
     console.error(`Error: Unknown agent(s): ${invalid.join(", ")}`);
@@ -128,6 +136,47 @@ function ensureGitignore(targetDir) {
   return true;
 }
 
+/**
+ * Create skill wrappers for Claude Code workflows.
+ * Each workflow file gets a corresponding skill in .claude/skills/
+ * so that /haki:xxx slash commands work.
+ */
+function createClaudeSkillWrappers(targetDir, workflowsDir) {
+  const skillsDir = path.join(targetDir, ".claude", "skills");
+  let count = 0;
+
+  if (!fs.existsSync(workflowsDir)) return count;
+
+  const entries = fs.readdirSync(workflowsDir).filter((f) => f.startsWith("haki-") && f.endsWith(".md"));
+
+  for (const filename of entries) {
+    const base = filename.replace(/\.md$/, ""); // e.g. "haki-next"
+    const skillName = base.replace(/^haki-/, "haki:"); // e.g. "haki:next"
+
+    // Read description from workflow frontmatter
+    const workflowContent = fs.readFileSync(path.join(workflowsDir, filename), "utf-8");
+    const descMatch = workflowContent.match(/^description:\s*(.+)$/m);
+    const description = descMatch ? descMatch[1].trim() : `Run the ${skillName} workflow`;
+
+    // Create skill directory and SKILL.md
+    const skillDir = path.join(skillsDir, base);
+    fs.mkdirSync(skillDir, { recursive: true });
+
+    const skillContent = `---
+name: ${skillName}
+description: ${description}
+---
+
+Read and follow the workflow instructions in \`.claude/workflows/${filename}\` exactly.
+`;
+
+    fs.writeFileSync(path.join(skillDir, "SKILL.md"), skillContent, "utf-8");
+    count++;
+  }
+
+  return count;
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 function main() {
@@ -180,15 +229,39 @@ Examples:
 
   console.log(`\n🚀 Installing haki into: ${targetDir}\n`);
 
+  const isClaude = selectedAgents.includes("claude");
+
+  // Determine which copy map to use
+  // If claude is selected, use CLAUDE_COPY_MAP; otherwise use DEFAULT_COPY_MAP
+  // When multiple agents are selected, run both maps (deduplicate shared paths)
+  const copyMaps = new Map();
+
+  for (const agent of selectedAgents) {
+    const reg = AGENT_REGISTRY[agent];
+    const map = reg?.copyMap || DEFAULT_COPY_MAP;
+    for (const entry of map) {
+      // Use dst as key to deduplicate
+      copyMaps.set(entry.dst, entry);
+    }
+  }
+
   let totalFiles = 0;
 
-  for (const { src, dst, pattern } of COPY_MAP) {
+  for (const { src, dst, pattern } of copyMaps.values()) {
     const srcPath = path.join(SOURCE_ROOT, src);
     const dstPath = path.join(targetDir, dst);
     const filter = pattern ? (name) => pattern.test(name) : undefined;
     const count = copyDirRecursive(srcPath, dstPath, filter);
     console.log(`   ✅ ${dst}/ (${count} files)`);
     totalFiles += count;
+  }
+
+  // Create Claude Code skill wrappers for workflows
+  if (isClaude) {
+    const workflowsDir = path.join(targetDir, ".claude", "workflows");
+    const wrapperCount = createClaudeSkillWrappers(targetDir, workflowsDir);
+    console.log(`   ✅ .claude/skills/ workflow wrappers (${wrapperCount} skills)`);
+    totalFiles += wrapperCount;
   }
 
   // Create .haki/ runtime directory
@@ -200,15 +273,7 @@ Examples:
   // Generate agent config files for selected agents (non-destructive)
   const agentConfigs = selectedAgents
     .map((a) => AGENT_REGISTRY[a])
-    .filter(Boolean); // null = antigravity/gemini, no extra file needed
-
-  if (
-    agentConfigs.length === 0 &&
-    !selectedAgents.includes("antigravity") &&
-    !selectedAgents.includes("gemini")
-  ) {
-    // Should not happen, but guard anyway
-  }
+    .filter(Boolean);
 
   if (agentConfigs.length > 0) {
     for (const { template, target, label } of agentConfigs) {
@@ -232,7 +297,7 @@ Examples:
       console.log("   ✅ .gitignore (added .haki/)");
   }
 
-  console.log(`\n✨ Done! ${totalFiles} files installed into .agent/`);
+  console.log(`\n✨ Done! ${totalFiles} files installed`);
   console.log(`\n▶ Next: /haki:new-project (or /haki:next)\n`);
 }
 
