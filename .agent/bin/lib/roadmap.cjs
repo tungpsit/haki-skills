@@ -7,10 +7,10 @@
  */
 
 const fs = require("fs");
-const path = require("path");
 const { output, error, hakiPaths, safeReadFile } = require("./core.cjs");
+const { emitEvent } = require("./haki-ui/event-emitter.cjs");
+const { normalizeStatusLabel } = require("./haki-ui/event-schema.cjs");
 
-// Status values and their order
 const STATUS_ORDER = [
   "⏳ Pending",
   "💬 Discussed",
@@ -19,6 +19,7 @@ const STATUS_ORDER = [
   "✅ Completed",
   "⏸️ Blocked",
 ];
+
 const STATUS_EMOJI = {
   pending: "⏳ Pending",
   discussed: "💬 Discussed",
@@ -28,16 +29,152 @@ const STATUS_EMOJI = {
   blocked: "⏸️ Blocked",
 };
 
-/**
- * Parse ROADMAP.md and extract all tasks with their metadata.
- */
+function mapTaskActionToPhase(action) {
+  if (action === "discuss") return "discuss";
+  if (action === "plan") return "plan";
+  if (action === "exec") return "exec";
+  return undefined;
+}
+
+function mapStatusToEventType(status) {
+  switch (normalizeStatusLabel(status)) {
+    case "discussed":
+      return "task.discussed";
+    case "planned":
+      return "task.planned";
+    case "executing":
+      return "task.executing";
+    case "completed":
+      return "task.completed";
+    case "blocked":
+      return "task.blocked";
+    default:
+      return "task.created";
+  }
+}
+
+function mapTaskPhase(task) {
+  if (!task) return undefined;
+  if (task.phase === 1) return "new-project";
+  if (task.status.includes("Discussed") || task.status.includes("Pending")) {
+    return "discuss";
+  }
+  if (task.status.includes("Planned")) return "plan";
+  if (task.status.includes("In Progress") || task.status.includes("Completed") || task.status.includes("Blocked")) {
+    return "exec";
+  }
+  return undefined;
+}
+
+function taskPayload(task) {
+  return {
+    taskId: task.id,
+    taskTitle: task.name,
+    phaseNumber: task.phase,
+    dependencies: task.dependencies,
+    priority: task.priority,
+    statusLabel: task.status,
+  };
+}
+
+function taskStatusValue(task) {
+  return normalizeStatusLabel(task?.status);
+}
+
+function statusInputValue(newStatus) {
+  return normalizeStatusLabel(STATUS_EMOJI[newStatus.toLowerCase()] || newStatus);
+}
+
+function summaryFromTasks(tasks) {
+  return {
+    total: tasks.length,
+    completed: tasks.filter((task) => task.status.includes("Completed")).length,
+    in_progress: tasks.filter((task) => task.status.includes("In Progress")).length,
+    planned: tasks.filter((task) => task.status.includes("Planned")).length,
+    discussed: tasks.filter((task) => task.status.includes("Discussed")).length,
+    pending: tasks.filter((task) => task.status.includes("Pending")).length,
+  };
+}
+
+function progressPercent(summary) {
+  return summary.total > 0 ? Math.round((summary.completed / summary.total) * 100) : 0;
+}
+
+function taskOutput(task) {
+  return {
+    id: task.id,
+    name: task.name,
+    slug: task.slug,
+    status: task.status,
+    priority: task.priority,
+    dependencies: task.dependencies,
+    phase: task.phase,
+  };
+}
+
+function emitRoadmapEvent(cwd, type, task, payload = {}) {
+  emitEvent(cwd, {
+    type,
+    entityType: "task",
+    entityId: task?.id || payload.taskId || type,
+    phase: payload.phase,
+    status: payload.status,
+    parentId: payload.parentId || null,
+    payload,
+  });
+}
+
+function emitWorkflowBoundary(cwd, workflowName, phase, outcome) {
+  emitEvent(cwd, {
+    type: outcome ? "workflow.exited" : "workflow.entered",
+    entityType: "workflow",
+    entityId: workflowName,
+    phase,
+    payload: outcome ? { workflowName, outcome } : { workflowName },
+  });
+}
+
+function emitPhaseBoundary(cwd, entityId, phase, status, payload) {
+  emitEvent(cwd, {
+    type:
+      status === "active"
+        ? "phase.active"
+        : status === "blocked"
+          ? "phase.blocked"
+          : "phase.completed",
+    entityType: "phase",
+    entityId,
+    phase,
+    status,
+    payload,
+  });
+}
+
+function emitRouteSelection(cwd, entityId, phase, payload) {
+  emitEvent(cwd, {
+    type: "route.selected",
+    entityType: "workflow",
+    entityId,
+    phase,
+    payload,
+  });
+}
+
+function emitTaskState(cwd, task, phase, transition, statusOverride) {
+  emitRoadmapEvent(cwd, mapStatusToEventType(statusOverride || task.status), task, {
+    ...taskPayload(task),
+    phase: phase || mapTaskPhase(task),
+    status: statusOverride || taskStatusValue(task),
+    transition,
+  });
+}
+
 function parseRoadmap(content) {
   if (!content) return { phases: [], tasks: [] };
 
   const phases = [];
   const tasks = [];
 
-  // Extract phases: ## Phase N: Name
   const phasePattern = /^##\s+Phase\s+(\d+):\s*(.+)$/gm;
   let phaseMatch;
   while ((phaseMatch = phasePattern.exec(content)) !== null) {
@@ -48,35 +185,28 @@ function parseRoadmap(content) {
     });
   }
 
-  // Extract tasks: ### Task X.Y: Name (`id`)
   const taskPattern =
     /^###\s+Task\s+([\d.]+):\s*(.+?)(?:\s*\(`?([^)`]+)`?\))?\s*$/gm;
   let taskMatch;
   while ((taskMatch = taskPattern.exec(content)) !== null) {
-    const taskId = taskMatch[1]; // e.g., "1.1"
+    const taskId = taskMatch[1];
     const taskName = taskMatch[2].trim();
-    const taskSlug = taskMatch[3] || null; // e.g., "foundation:database"
+    const taskSlug = taskMatch[3] || null;
 
-    // Find the section for this task
     const sectionStart = taskMatch.index;
     const restOfContent = content.slice(sectionStart);
-    const nextTaskOrPhase = restOfContent.match(
-      /\n###?\s+(Task\s+[\d.]|Phase\s+\d)/,
-    );
+    const nextTaskOrPhase = restOfContent.match(/\n###?\s+(Task\s+[\d.]|Phase\s+\d)/);
     const sectionEnd = nextTaskOrPhase
       ? sectionStart + nextTaskOrPhase.index
       : content.length;
     const section = content.slice(sectionStart, sectionEnd);
 
-    // Extract status
     const statusMatch = section.match(/\*\*Status:\*\*\s*(.+)/);
     const status = statusMatch ? statusMatch[1].trim() : "⏳ Pending";
 
-    // Extract priority
     const priorityMatch = section.match(/\*\*Priority:\*\*\s*(\d+)/);
     const priority = priorityMatch ? parseInt(priorityMatch[1], 10) : 0;
 
-    // Extract dependencies
     const depsMatch = section.match(/\*\*Dependencies:\*\*\s*(.+)/);
     const dependencies =
       depsMatch && depsMatch[1].trim() !== "None"
@@ -86,11 +216,9 @@ function parseRoadmap(content) {
             .map((d) => d.trim())
         : [];
 
-    // Extract plan link
     const planMatch = section.match(/\*\*Plan:\*\*\s*\[([^\]]+)\]\(([^)]+)\)/);
     const planLink = planMatch ? planMatch[2] : null;
 
-    // Determine phase
     let phaseNum = null;
     for (const p of phases) {
       if (sectionStart >= p.startIndex) phaseNum = p.number;
@@ -113,9 +241,6 @@ function parseRoadmap(content) {
   return { phases, tasks };
 }
 
-/**
- * Parse ROADMAP.md and return structured analysis.
- */
 function cmdRoadmapAnalyze(cwd, raw) {
   const roadmapPath = hakiPaths(cwd).roadmap;
   const content = safeReadFile(roadmapPath);
@@ -126,51 +251,41 @@ function cmdRoadmapAnalyze(cwd, raw) {
   }
 
   const { phases, tasks } = parseRoadmap(content);
+  const summary = summaryFromTasks(tasks);
 
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter((t) =>
-    t.status.includes("Completed"),
-  ).length;
-  const inProgressTasks = tasks.filter((t) =>
-    t.status.includes("In Progress"),
-  ).length;
-  const plannedTasks = tasks.filter((t) => t.status.includes("Planned")).length;
-  const discussedTasks = tasks.filter((t) =>
-    t.status.includes("Discussed"),
-  ).length;
-  const pendingTasks = tasks.filter((t) => t.status.includes("Pending")).length;
+  emitWorkflowBoundary(cwd, "roadmap.analyze", "plan");
+  emitPhaseBoundary(cwd, "roadmap.analyze", "plan", "active", {
+    command: "roadmap.analyze",
+    summary,
+  });
+
+  for (const task of tasks) {
+    emitTaskState(cwd, task);
+  }
+
+  emitRouteSelection(cwd, "roadmap.analyze", "plan", {
+    action: "analyze",
+    summary,
+  });
+  emitPhaseBoundary(cwd, "roadmap.analyze", "plan", "completed", {
+    command: "roadmap.analyze",
+    summary,
+  });
+  emitWorkflowBoundary(cwd, "roadmap.analyze", "plan", "completed");
 
   output(
     {
-      phases: phases.map((p) => ({ number: p.number, name: p.name })),
-      tasks: tasks.map((t) => ({
-        id: t.id,
-        name: t.name,
-        slug: t.slug,
-        status: t.status,
-        priority: t.priority,
-        dependencies: t.dependencies,
-        phase: t.phase,
-      })),
+      phases: phases.map((phase) => ({ number: phase.number, name: phase.name })),
+      tasks: tasks.map(taskOutput),
       stats: {
-        total: totalTasks,
-        completed: completedTasks,
-        in_progress: inProgressTasks,
-        planned: plannedTasks,
-        discussed: discussedTasks,
-        pending: pendingTasks,
-        progress_percent:
-          totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
+        ...summary,
+        progress_percent: progressPercent(summary),
       },
     },
     raw,
   );
 }
 
-/**
- * Find the next actionable task from ROADMAP.md.
- * Priority: in_progress > planned > discussed > pending
- */
 function cmdRoadmapNextTask(cwd, raw) {
   const roadmapPath = hakiPaths(cwd).roadmap;
   const content = safeReadFile(roadmapPath);
@@ -182,69 +297,98 @@ function cmdRoadmapNextTask(cwd, raw) {
 
   const { tasks } = parseRoadmap(content);
 
-  // Find first task by lifecycle priority
-  const inProgress = tasks.find((t) => t.status.includes("In Progress"));
-  if (inProgress) {
-    output(
-      { found: true, task: inProgress, action: "exec" },
-      raw,
-      inProgress.id,
-    );
-    return;
+  function select(task, action) {
+    const phase = mapTaskActionToPhase(action);
+    emitTaskState(cwd, task, phase, "selected");
+    emitRouteSelection(cwd, `roadmap-next-${task.id}`, phase, {
+      action,
+      taskId: task.id,
+      taskTitle: task.name,
+    });
+    output({ found: true, task, action }, raw, task.id);
   }
+
+  const inProgress = tasks.find((t) => t.status.includes("In Progress"));
+  if (inProgress) return select(inProgress, "exec");
 
   const planned = tasks.find((t) => t.status.includes("Planned"));
-  if (planned) {
-    output({ found: true, task: planned, action: "exec" }, raw, planned.id);
-    return;
-  }
+  if (planned) return select(planned, "exec");
 
   const discussed = tasks.find((t) => t.status.includes("Discussed"));
-  if (discussed) {
-    output({ found: true, task: discussed, action: "plan" }, raw, discussed.id);
-    return;
-  }
+  if (discussed) return select(discussed, "plan");
 
   const pending = tasks.find((t) => t.status.includes("Pending"));
-  if (pending) {
-    output({ found: true, task: pending, action: "discuss" }, raw, pending.id);
-    return;
-  }
+  if (pending) return select(pending, "discuss");
 
+  emitRouteSelection(cwd, "roadmap-next-all-complete", "done", {
+    action: "milestone",
+    reason: "all_complete",
+  });
   output({ found: false, reason: "all_complete" }, raw, "");
 }
 
-/**
- * Update the status of a task in ROADMAP.md.
- */
 function cmdRoadmapUpdateStatus(cwd, taskId, newStatus, raw) {
   if (!taskId) error("Usage: roadmap update-status <task-id> <status>");
   if (!newStatus) error("Usage: roadmap update-status <task-id> <status>");
 
   const statusValue = STATUS_EMOJI[newStatus.toLowerCase()] || newStatus;
+  const normalizedStatus = statusInputValue(newStatus);
+  const targetPhase =
+    normalizedStatus === "discussed"
+      ? "discuss"
+      : normalizedStatus === "planned"
+        ? "plan"
+        : normalizedStatus === "executing" || normalizedStatus === "completed" || normalizedStatus === "blocked"
+          ? "exec"
+          : undefined;
+
   const roadmapPath = hakiPaths(cwd).roadmap;
   let content = safeReadFile(roadmapPath);
-
   if (!content) {
     error("ROADMAP.md not found");
     return;
   }
 
-  // Find and replace the status line for this task
+  const existingTask = parseRoadmap(content).tasks.find((task) => task.id === taskId);
+
+  emitWorkflowBoundary(cwd, `roadmap.update-status.${taskId}`, targetPhase);
+  if (existingTask) {
+    emitTaskState(cwd, existingTask, targetPhase || mapTaskPhase(existingTask), "before");
+  }
+  emitPhaseBoundary(cwd, `task-${taskId}`, targetPhase, "active", {
+    taskId,
+    nextStatus: normalizedStatus,
+  });
+
   const escapedId = taskId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const taskPattern = new RegExp(
     `(###\\s+Task\\s+${escapedId}:[\\s\\S]*?\\*\\*Status:\\*\\*\\s*)([^\\n]+)`,
     "i",
   );
 
-  const match = content.match(taskPattern);
-  if (!match) {
+  if (!taskPattern.test(content)) {
     error(`Task ${taskId} not found in ROADMAP.md`);
     return;
   }
 
   content = content.replace(taskPattern, `$1${statusValue}`);
   fs.writeFileSync(roadmapPath, content, "utf-8");
+
+  const updatedTask = parseRoadmap(content).tasks.find((task) => task.id === taskId);
+  if (updatedTask) {
+    emitTaskState(cwd, updatedTask, targetPhase || mapTaskPhase(updatedTask), "after", normalizedStatus);
+  }
+
+  emitRouteSelection(cwd, `roadmap-update-${taskId}`, targetPhase, {
+    action: "update-status",
+    taskId,
+    status: normalizedStatus,
+  });
+  emitPhaseBoundary(cwd, `task-${taskId}`, targetPhase, normalizedStatus === "blocked" ? "blocked" : "completed", {
+    taskId,
+    status: normalizedStatus,
+  });
+  emitWorkflowBoundary(cwd, `roadmap.update-status.${taskId}`, targetPhase, normalizedStatus);
 
   output(
     {
@@ -258,6 +402,7 @@ function cmdRoadmapUpdateStatus(cwd, taskId, newStatus, raw) {
 }
 
 module.exports = {
+  STATUS_ORDER,
   STATUS_EMOJI,
   parseRoadmap,
   cmdRoadmapAnalyze,

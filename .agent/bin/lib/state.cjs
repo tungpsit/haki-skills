@@ -9,15 +9,22 @@
  */
 
 const fs = require("fs");
-const path = require("path");
 const {
   output,
-  error,
   hakiPaths,
   safeReadFile,
-  HAKI_DIR,
 } = require("./core.cjs");
 const { parseRoadmap } = require("./roadmap.cjs");
+const { emitEvent } = require("./haki-ui/event-emitter.cjs");
+
+function actionToPhase(action) {
+  if (action === "/haki:new-project") return "new-project";
+  if (action === "/haki:discuss") return "discuss";
+  if (action === "/haki:plan") return "plan";
+  if (action === "/haki:exec") return "exec";
+  if (action === "milestone") return "done";
+  return undefined;
+}
 
 /**
  * Detect the full project state and return a snapshot.
@@ -45,7 +52,6 @@ function detectState(cwd) {
     next_reason: null,
   };
 
-  // Check .haki/ exists
   if (!fs.existsSync(paths.haki)) {
     state.next_action = "/haki:new-project";
     state.next_reason = "No .haki/ directory found";
@@ -57,7 +63,6 @@ function detectState(cwd) {
   state.has_roadmap = fs.existsSync(paths.roadmap);
   state.has_config = fs.existsSync(paths.config);
 
-  // Check research
   if (fs.existsSync(paths.research)) {
     try {
       const entries = fs.readdirSync(paths.research);
@@ -67,7 +72,6 @@ function detectState(cwd) {
     }
   }
 
-  // Check codebase map
   if (fs.existsSync(paths.codebase)) {
     try {
       const entries = fs.readdirSync(paths.codebase);
@@ -77,21 +81,18 @@ function detectState(cwd) {
     }
   }
 
-  // No project file yet
   if (!state.has_project) {
     state.next_action = "/haki:new-project";
     state.next_reason = "PROJECT.md not found";
     return state;
   }
 
-  // No roadmap yet
   if (!state.has_roadmap) {
     state.next_action = "/haki:new-project";
     state.next_reason = "ROADMAP.md not found";
     return state;
   }
 
-  // Parse roadmap for task analysis
   const roadmapContent = safeReadFile(paths.roadmap);
   if (roadmapContent) {
     const { tasks } = parseRoadmap(roadmapContent);
@@ -106,37 +107,27 @@ function detectState(cwd) {
       else state.tasks.pending++;
     }
 
-    // Determine next action based on task states
-    // Route 1: In-progress tasks → continue executing
     if (state.tasks.in_progress > 0) {
       const task = tasks.find((t) => t.status.includes("In Progress"));
       state.next_action = "/haki:exec";
       state.next_args = task?.id;
       state.next_reason = `Task ${task?.id} is in progress`;
-    }
-    // Route 2: Planned tasks → execute
-    else if (state.tasks.planned > 0) {
+    } else if (state.tasks.planned > 0) {
       const task = tasks.find((t) => t.status.includes("Planned"));
       state.next_action = "/haki:exec";
       state.next_args = task?.id;
       state.next_reason = `Task ${task?.id} is planned and ready to execute`;
-    }
-    // Route 3: Discussed tasks → plan
-    else if (state.tasks.discussed > 0) {
+    } else if (state.tasks.discussed > 0) {
       const task = tasks.find((t) => t.status.includes("Discussed"));
       state.next_action = "/haki:plan";
       state.next_args = task?.id;
       state.next_reason = `Task ${task?.id} is discussed, needs planning`;
-    }
-    // Route 4: Pending tasks → discuss
-    else if (state.tasks.pending > 0) {
+    } else if (state.tasks.pending > 0) {
       const task = tasks.find((t) => t.status.includes("Pending"));
       state.next_action = "/haki:discuss";
       state.next_args = task?.id;
       state.next_reason = `Task ${task?.id} is pending, needs discussion`;
-    }
-    // Route 5: All complete → milestone
-    else if (
+    } else if (
       state.tasks.completed === state.tasks.total &&
       state.tasks.total > 0
     ) {
@@ -148,11 +139,82 @@ function detectState(cwd) {
   return state;
 }
 
+function emitStateEvents(cwd, state, commandName) {
+  if (!state.next_action) return;
+  const phase = actionToPhase(state.next_action);
+
+  emitEvent(cwd, {
+    type: "workflow.entered",
+    entityType: "workflow",
+    entityId: commandName,
+    phase,
+    payload: {
+      workflowName: commandName,
+      nextAction: state.next_action,
+      nextArgs: state.next_args,
+    },
+  });
+
+  emitEvent(cwd, {
+    type: "phase.active",
+    entityType: "phase",
+    entityId: `${commandName}:summary`,
+    phase,
+    status: "active",
+    payload: {
+      command: commandName,
+      tasks: state.tasks,
+      nextAction: state.next_action,
+      nextArgs: state.next_args,
+      nextReason: state.next_reason,
+    },
+  });
+
+  emitEvent(cwd, {
+    type: "route.selected",
+    entityType: "workflow",
+    entityId: `${commandName}:route`,
+    phase,
+    payload: {
+      action: state.next_action,
+      args: state.next_args,
+      reason: state.next_reason,
+    },
+  });
+
+  emitEvent(cwd, {
+    type: "phase.completed",
+    entityType: "phase",
+    entityId: `${commandName}:summary`,
+    phase,
+    status: "completed",
+    payload: {
+      command: commandName,
+      tasks: state.tasks,
+      nextAction: state.next_action,
+      nextArgs: state.next_args,
+      nextReason: state.next_reason,
+    },
+  });
+
+  emitEvent(cwd, {
+    type: "workflow.exited",
+    entityType: "workflow",
+    entityId: commandName,
+    phase,
+    payload: {
+      workflowName: commandName,
+      outcome: state.next_action,
+    },
+  });
+}
+
 /**
  * CLI command: detect state and output as JSON.
  */
 function cmdStateDetect(cwd, raw) {
   const state = detectState(cwd);
+  emitStateEvents(cwd, state, "state.detect");
   output(state, raw);
 }
 
@@ -161,6 +223,7 @@ function cmdStateDetect(cwd, raw) {
  */
 function cmdStateJson(cwd, raw) {
   const state = detectState(cwd);
+  emitStateEvents(cwd, state, "state.json");
 
   const progressPercent =
     state.tasks.total > 0

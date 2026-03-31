@@ -43,6 +43,8 @@ function findProjectRoot(startDir) {
  */
 function hakiPaths(cwd) {
   const base = path.join(cwd, HAKI_DIR);
+  const hakiUi = path.join(base, "ui");
+  const runs = path.join(hakiUi, "runs");
   return {
     haki: base,
     project: path.join(base, "PROJECT.md"),
@@ -52,6 +54,11 @@ function hakiPaths(cwd) {
     research: path.join(base, "research"),
     codebase: path.join(base, "codebase"),
     tasks: path.join(base, "tasks"),
+    haki_ui: hakiUi,
+    haki_ui_runs: runs,
+    haki_ui_current_run: path.join(hakiUi, "current-run.json"),
+    haki_ui_current_log: path.join(hakiUi, "current-run.jsonl"),
+    haki_ui_snapshots: path.join(hakiUi, "snapshots"),
   };
 }
 

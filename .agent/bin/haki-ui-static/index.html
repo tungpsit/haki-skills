@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Haki UI</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07111f;
+      --panel: rgba(16, 24, 42, 0.92);
+      --panel-2: rgba(25, 37, 66, 0.94);
+      --border: rgba(120, 156, 234, 0.16);
+      --text: #eef4ff;
+      --muted: #9cadcf;
+      --accent: #67b7ff;
+      --accent-2: #8b5cf6;
+      --success: #34d399;
+      --warning: #f59e0b;
+      --error: #fb7185;
+      --glow: rgba(103, 183, 255, 0.38);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(103,183,255,0.18), transparent 25%),
+        radial-gradient(circle at 90% 0%, rgba(139,92,246,0.18), transparent 30%),
+        linear-gradient(180deg, #08101d, #0a1323 55%, #060b14);
+      min-height: 100vh;
+    }
+    .shell { display: grid; grid-template-rows: auto auto 1fr; min-height: 100vh; }
+    .header {
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8, 16, 29, 0.7);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header h1 { margin: 0; font-size: 22px; }
+    .header p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    .badge {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(103,183,255,0.24);
+      background: rgba(103,183,255,0.12);
+      color: var(--accent);
+      font-size: 12px;
+      box-shadow: 0 0 18px rgba(103,183,255,0.1);
+    }
+    .timeline {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      gap: 12px;
+      background: rgba(13, 20, 36, 0.82);
+      backdrop-filter: blur(10px);
+    }
+    .timeline-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .timeline input[type="range"] { width: 100%; }
+    .content {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr 320px;
+      gap: 16px;
+      padding: 16px;
+    }
+    .panel {
+      background: linear-gradient(180deg, var(--panel-2), var(--panel));
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 16px;
+      min-height: 320px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.28);
+    }
+    .panel h2 { margin: 0 0 12px; font-size: 16px; }
+    .graph { display: grid; gap: 12px; }
+    .node {
+      position: relative;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(103,183,255,.18);
+      background: linear-gradient(180deg, rgba(103,183,255,.08), rgba(103,183,255,.03));
+      overflow: hidden;
+    }
+    .node.active {
+      border-color: rgba(103,183,255,.45);
+      box-shadow: 0 0 0 1px rgba(103,183,255,.18), 0 0 26px rgba(103,183,255,.18);
+    }
+    .node.active::after {
+      content: "";
+      position: absolute;
+      inset: -30%;
+      background: radial-gradient(circle, var(--glow), transparent 55%);
+      animation: pulse 2s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .node .title { display: flex; justify-content: space-between; gap: 12px; position: relative; z-index: 1; }
+    .node strong { font-size: 14px; }
+    .node .meta { position: relative; z-index: 1; margin-top: 6px; color: var(--muted); font-size: 12px; }
+    .lane {
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(139,92,246,.22);
+      background: linear-gradient(180deg, rgba(139,92,246,.10), rgba(139,92,246,.04));
+      margin-bottom: 12px;
+    }
+    .lane strong { display: block; margin-bottom: 8px; }
+    .lane .stats { display: flex; flex-wrap: wrap; gap: 8px; color: var(--muted); font-size: 12px; }
+    .chip {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .inspector pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .events { display: grid; gap: 8px; margin-top: 14px; }
+    .event {
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.06);
+      cursor: pointer;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+    .event:hover { transform: translateY(-1px); border-color: rgba(103,183,255,.24); }
+    .event.active {
+      border-color: rgba(103,183,255,.45);
+      background: rgba(103,183,255,.12);
+      box-shadow: 0 0 20px rgba(103,183,255,.1);
+    }
+    .event strong { display: block; margin-bottom: 4px; }
+    .event .meta { color: var(--muted); font-size: 12px; }
+    @keyframes pulse {
+      0%, 100% { opacity: .18; transform: scale(.96); }
+      50% { opacity: .65; transform: scale(1.04); }
+    }
+    @media (max-width: 1100px) {
+      .content { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="header">
+      <div>
+        <h1>Haki UI</h1>
+        <p>Realtime + replay monitor for Haki lifecycle runs.</p>
+      </div>
+      <div class="badge" id="run-badge">Waiting for run…</div>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-meta">
+        <span id="timeline-label">Playhead: 0 / 0</span>
+        <span id="timeline-mode">Live stream connected</span>
+      </div>
+      <input id="playhead" type="range" min="0" max="0" value="0" />
+    </div>
+
+    <div class="content">
+      <section class="panel">
+        <h2>Graph View</h2>
+        <div class="graph" id="graph"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Stage View</h2>
+        <div id="stages"></div>
+        <div class="events" id="timeline-events"></div>
+      </section>
+
+      <aside class="panel inspector">
+        <h2>Inspector</h2>
+        <pre id="inspector">Select an event to inspect details.</pre>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      events: [],
+      replay: null,
+      selectedEventId: null,
+      runId: null,
+    };
+
+    const graphEl = document.getElementById('graph');
+    const stagesEl = document.getElementById('stages');
+    const timelineEventsEl = document.getElementById('timeline-events');
+    const inspectorEl = document.getElementById('inspector');
+    const playheadEl = document.getElementById('playhead');
+    const timelineLabelEl = document.getElementById('timeline-label');
+    const runBadgeEl = document.getElementById('run-badge');
+
+    function renderGraph(graph) {
+      graphEl.innerHTML = graph.nodes.map((node) => `
+        <div class="node ${node.id === graph.activeNodeId ? 'active' : ''}">
+          <div class="title">
+            <strong>${node.label}</strong>
+            <span>${node.count} events</span>
+          </div>
+          <div class="meta">${node.entityType} · ${node.phase || 'unassigned'} · ${node.status || 'n/a'} · last: ${node.lastEventType}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderStages(stage) {
+      stagesEl.innerHTML = stage.lanes.map((lane) => `
+        <div class="lane">
+          <strong>${lane.phase}</strong>
+          <div class="stats">
+            <span class="chip">${lane.total} events</span>
+            ${Object.entries(lane.statuses).map(([status, count]) => `<span class="chip">${status}: ${count}</span>`).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderTimeline(timeline) {
+      playheadEl.max = Math.max(0, timeline.events.length - 1);
+      playheadEl.value = state.replay.playhead;
+      timelineLabelEl.textContent = `Playhead: ${state.replay.playhead + 1} / ${timeline.events.length}`;
+
+      timelineEventsEl.innerHTML = timeline.events.map((event) => `
+        <div class="event ${event.id === state.selectedEventId ? 'active' : ''}" data-event-id="${event.id}">
+          <strong>${event.type}</strong>
+          <div class="meta">${event.entityType}:${event.entityId} · ${event.phase || 'unassigned'} · ${event.status || 'n/a'}</div>
+        </div>
+      `).join('');
+
+      timelineEventsEl.querySelectorAll('.event').forEach((element) => {
+        element.addEventListener('click', () => {
+          state.selectedEventId = element.dataset.eventId;
+          const event = state.events.find((item) => item.id === state.selectedEventId);
+          inspectorEl.textContent = JSON.stringify(event, null, 2);
+          render();
+        });
+      });
+    }
+
+    function render() {
+      if (!state.replay) return;
+      runBadgeEl.textContent = state.runId ? `Run ${state.runId}` : 'Waiting for run…';
+      renderGraph(state.replay.projections.graph);
+      renderStages(state.replay.projections.stage);
+      renderTimeline(state.replay.projections.timeline);
+    }
+
+    async function loadReplay(playhead) {
+      const response = await fetch(`/api/replay?playhead=${playhead}`);
+      const data = await response.json();
+      state.replay = data.replay;
+      state.runId = data.run?.runId || null;
+      render();
+    }
+
+    async function loadEvents() {
+      const response = await fetch('/api/events');
+      const data = await response.json();
+      state.events = data.events || [];
+      state.runId = data.run?.runId || null;
+      const playhead = Math.max(0, state.events.length - 1);
+      await loadReplay(playhead);
+    }
+
+    playheadEl.addEventListener('input', () => {
+      loadReplay(Number(playheadEl.value));
+    });
+
+    const source = new EventSource('/api/stream');
+    source.addEventListener('message', async () => {
+      await loadEvents();
+    });
+
+    source.addEventListener('error', () => {
+      document.getElementById('timeline-mode').textContent = 'Reconnecting live stream…';
+    });
+
+    source.addEventListener('open', () => {
+      document.getElementById('timeline-mode').textContent = 'Live stream connected';
+    });
+
+    loadEvents();
+  </script>
+</body>
+</html>

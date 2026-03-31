@@ -4,7 +4,8 @@
   "description": "AI workflow system — project initialization, task planning, and execution with TDD-first approach",
   "bin": {
     "haki-skills": "./bin/install.js",
-    "haki-tools": "./.agent/bin/haki-tools.cjs"
+    "haki-tools": "./.agent/bin/haki-tools.cjs",
+    "haki-ui": "./.agent/bin/haki-ui.cjs"
   },
   "files": [
     "bin/",
@@ -15,7 +16,7 @@
     ".agent/workflows/"
   ],
   "scripts": {
-    "test": "node --test tests/",
+    "test": "node --test tests/**/*.test.js",
     "postinstall": "echo '✅ haki-skills installed. Run: npx haki-skills [target-dir]'"
   },
   "keywords": [
