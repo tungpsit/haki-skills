@@ -44,7 +44,7 @@ bin/
 └── install.js                            ← Modified: add coco setup step
 
 .haki/                                     ← (NOT in source repo)
-    └── cocoindex/                        ← Injected into user project
+    └── cocoindex/                        ← Created by installer in user project
         ├── config.json
         ├── docker-compose.yml
         ├── .env
@@ -58,6 +58,15 @@ bin/
             └── runner.js
 ```
 
+**Agent → SKILL.md path mapping:**
+
+| Agent | SKILL.md Source (in repo) | SKILL.md Destination (in user project) |
+|---|---|---|
+| claude | `.agent/skills/cocoindex-hybrid/SKILL.md` | `.claude/skills/cocoindex-hybrid/SKILL.md` |
+| antigravity / gemini / codex / cursor | `.agent/skills/cocoindex-hybrid/SKILL.md` | `.agent/skills/cocoindex-hybrid/SKILL.md` |
+
+The `createClaudeSkillWrappers()` function in `bin/install.js` already copies skill dirs from `.agent/skills/` to `.claude/skills/`. The `cocoindex-hybrid` skill follows this pattern automatically — no special handling needed.
+
 **Key insight:** `.haki/cocoindex/` does not live in the Haki source repo. It is created by the installer (or a setup script) inside each user project. This preserves Haki's source repo as pure Node.js.
 
 ### 3.2 Design Principle: No Core Changes
@@ -69,11 +78,23 @@ bin/
 | `.agent/bin/haki-tools.cjs` | No |
 | `.agent/templates/*` | No |
 | `package.json` | No |
-| `.gitignore` | Append only (add `.haki/postgres/`) |
+| `.gitignore` | Append only |
 | `bin/install.js` | **Yes** — add CocoIndex setup step at the end |
 | `README.md` | Update docs link |
 
-### 3.3 Data Flow
+### 3.3 `.gitignore` Additions
+
+Append to project's `.gitignore`:
+
+```
+# CocoIndex vector DB data
+.haki/cocoindex/*.db
+.haki/cocoindex/postgres_data/
+```
+
+Note: Docker named volumes (e.g. `haki-cocoindex-myproject`) are managed by Docker, not the filesystem — they don't need `.gitignore` entries. The `postgres_data/` directory in `docker-compose.yml` is a named volume, not a bind mount.
+
+### 3.4 Data Flow
 
 ```
 User types /haki:index
@@ -107,6 +128,40 @@ User types /haki:index
 ---
 
 ## 4. Component Specifications
+
+### 4.0 `.haki/cocoindex/lib/config.js`
+
+Loads and saves `.haki/cocoindex/config.json`.
+
+```javascript
+const CONFIG_PATH = path.join(__dirname, '..', 'config.json');
+
+function loadConfig() {
+  try {
+    return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
+  } catch {
+    // Return defaults if file doesn't exist
+    return {
+      embedding_model: 'sentence-transformers/nomic-embed-text-v1.5',
+      chunk_size: 1000,
+      chunk_overlap: 200,
+      excluded_patterns: [/* defaults */],
+      last_indexed: null,
+      pg_port: 54320,
+    };
+  }
+}
+
+function saveConfig(config) {
+  fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), 'utf-8');
+}
+
+module.exports = { loadConfig, saveConfig };
+```
+
+- `loadConfig()` never throws — returns defaults on error
+- `saveConfig()` writes atomically (write-then-rename)
+- Config path resolves relative to `__dirname` (CLI is always run from project root)
 
 ### 4.1 `.haki/cocoindex/config.json`
 
@@ -156,7 +211,34 @@ volumes:
     name: haki-cocoindex-${PROJECT_SLUG:-project}
 ```
 
-**Port strategy:** Installer finds a free port starting at 54320 and writes it to `config.json` + `.env`. Each project gets its own Postgres container with a unique port.
+**Port strategy:** Installer finds a free port starting at 54320, trying up to 54329. If all are in use, the setup step fails with a clear message telling the user to stop one of the running containers or specify a port manually.
+
+```javascript
+async function findFreePort(start = 54320, maxAttempts = 10) {
+  for (let port = start; port < start + maxAttempts; port++) {
+    const free = await isPortFree(port);
+    if (free) return port;
+  }
+  throw new Error(
+    `No free port in range ${start}–${start + maxAttempts - 1}. ` +
+    `Stop a running container: docker ps | grep haki-cocoindex`
+  );
+}
+
+async function isPortFree(port) {
+  try {
+    await new Promise((res, rej) => {
+      const s = require('net').createServer();
+      s.once('error', () => rej('in use'));
+      s.once('listening', () => { s.close(); res(); });
+      s.listen(port);
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+```
 
 ### 4.3 `.haki/cocoindex/.env`
 
@@ -212,21 +294,25 @@ Output is **machine-readable JSON** so Claude can parse it:
 
 ### 4.6 `.haki/cocoindex/lib/detect.js`
 
-Checks availability in order:
+Checks availability in order. Uses `pg_isready` against the configured port — the definitive check for whether Postgres is accepting connections.
 
 ```javascript
-async function detect() {
+async function detect(config) {
+  const port = config?.pg_port || 54320;
   const checks = {
     python:     await run('python3 --version').then(() => true).catch(() => false),
     cocoindex:  await run('pip show cocoindex').then(() => true).catch(() => false),
     embeddings: await run('pip show sentence-transformers').then(() => true).catch(() => false),
     docker:     await run('docker --version').then(() => true).catch(() => false),
-    postgres:   await run('docker ps').then(out => out.includes('postgres')).catch(() => false),
+    postgres:   await run(`pg_isready -h localhost -p ${port} -U cocoindex`)
+                   .then(() => true).catch(() => false),
   };
   const ready = checks.python && checks.cocoindex && checks.postgres;
   return { ready, checks };
 }
 ```
+
+Note: `docker` check only confirms Docker CLI is available — it does not check if the container is running. The `postgres` check (via `pg_isready`) is the definitive "is vector DB accessible?" signal.
 
 ### 4.7 `.haki/cocoindex/lib/runner.js`
 
@@ -245,12 +331,62 @@ function runCocoindex(flowPath, env) {
     child.stderr.on('data', d => stderr += d);
 
     child.on('close', code => {
-      if (code === 0) resolve(JSON.parse(stdout));
-      else reject(new Error(stderr || `cocoindex exited with code ${code}`));
+      if (code === 0) {
+        try {
+          resolve(JSON.parse(stdout));
+        } catch (parseErr) {
+          // cocoindex succeeded but output is not JSON — surface partial stdout for debugging
+          const snippet = stdout.slice(0, 500);
+          reject(new Error(
+            `cocoindex succeeded but output is not JSON.\n` +
+            `stdout (first 500 chars): ${snippet}\n` +
+            `stderr: ${stderr}`
+          ));
+        }
+      } else {
+        reject(new Error(stderr || `cocoindex exited with code ${code}`));
+      }
     });
   });
 }
 ```
+
+Key behavior: if `cocoindex` exits 0 but stdout isn't JSON, surface the raw output in the error rather than crashing silently.
+
+### 4.9 PostgreSQL Table Schemas
+
+CocoIndex auto-creates tables on first run. Schema is documented for reference only.
+
+```sql
+-- haki_code_chunks
+CREATE TABLE haki_code_chunks (
+  id         SERIAL PRIMARY KEY,
+  file       TEXT NOT NULL,
+  language   TEXT,
+  location   TEXT NOT NULL,
+  content    TEXT NOT NULL,
+  embedding  vector(384),   -- 384-dim for nomic-embed / all-MiniLM-L6-v2
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(file, location)
+);
+
+CREATE INDEX ON haki_code_chunks USING ivfflat (embedding cosine_ops);
+
+-- haki_skill_chunks
+CREATE TABLE haki_skill_chunks (
+  id         SERIAL PRIMARY KEY,
+  skill_file TEXT NOT NULL,
+  location   TEXT NOT NULL,
+  content    TEXT NOT NULL,
+  embedding  vector(384),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(skill_file, location)
+);
+
+CREATE INDEX ON haki_skill_chunks USING ivfflat (embedding cosine_ops);
+```
+
+The embedding dimension (384) matches `nomic-embed-text-v1.5` and `all-MiniLM-L6-v2`. If the user selects OpenAI/Gemini (1536-dim), the vector column type must match. The Python flow handles this via `cocoindex.VectorIndexDef` configuration.
 
 ---
 
@@ -289,20 +425,28 @@ Vector index features bị bỏ qua. Haki tiếp tục workflow bình thường.
 
 File: `bin/install.js` — add a final step after the existing install completes.
 
+**Agent scoping:** The CocoIndex setup step runs only when `--for claude` is among the selected agents. For other agents (antigravity, cursor, etc.), CocoIndex setup is skipped — users on those agents can still run `npx haki-skills --cocoindex-setup` later.
+
 ### Detection Logic (in installer)
 
+`bin/install.js` does NOT duplicate `lib/detect.js`. Instead, if the installer detects that `.haki/cocoindex/` already exists in the target project, it skips the setup step (CocoIndex was already configured). If the directory does not exist and `--for claude` is selected, it runs the interactive setup.
+
 ```javascript
-async function detectCocoIndex() {
+async function cocoIndexSetupStep(targetDir) {
+  const cocoDir = path.join(targetDir, '.haki', 'cocoindex');
+
+  // Already configured — skip
+  if (fs.existsSync(cocoDir)) {
+    console.log('   ⏭️  CocoIndex already configured — skipping');
+    return;
+  }
+
+  // Run detect from the generated structure (not from source repo)
   const checks = {
     python:    await run('python3 --version').then(() => true).catch(() => false),
     cocoindex: await run('pip show cocoindex').then(() => true).catch(() => false),
     docker:    await run('docker --version').then(() => true).catch(() => false),
   };
-  return checks;
-}
-
-async function cocoIndexSetupStep(targetDir) {
-  const checks = await detectCocoIndex();
 
   if (!checks.python) {
     console.log('   ⚠️  Python not found — skipping CocoIndex');
@@ -339,12 +483,13 @@ async function cocoIndexSetupStep(targetDir) {
 ### New Installer Flag
 
 ```bash
-npx haki-skills --cocoindex-setup    # Re-run only the CocoIndex setup step
+npx haki-skills --cocoindex-setup          # Run only the CocoIndex setup step (claude target)
+npx haki-skills --for claude --cocoindex-setup  # Equivalent, explicit
 ```
 
-### `.gitignore` Update
+The `--cocoindex-setup` flag only takes effect when `--for claude` is also present (or implied). Running `--cocoindex-setup` alone is a no-op with a warning.
 
-Append to existing `.gitignore`:
+Append to project's `.gitignore`:
 
 ```
 # CocoIndex per-project Postgres data
@@ -357,13 +502,15 @@ Append to existing `.gitignore`:
 
 At install time (or `--cocoindex-setup`), user chooses:
 
-| Option | Model | Extra |
-|---|---|---|
-| 1 (default) | `sentence-transformers/nomic-embed-text-v1.5` | `pip install cocoindex[embeddings]` |
-| 2 | `text-embedding-3-small` (OpenAI) | Needs `OPENAI_API_KEY` env var |
-| 3 | `gemini-embedding` (Gemini) | Needs `GEMINI_API_KEY` env var |
+| Option | Model | Installer auto-installs | Runtime needs |
+|---|---|---|---|
+| 1 (default) | `sentence-transformers/nomic-embed-text-v1.5` | `pip install cocoindex[embeddings]` | Nothing |
+| 2 | `text-embedding-3-small` (OpenAI) | Nothing extra | `OPENAI_API_KEY` env var |
+| 3 | `gemini-embedding` (Gemini) | Nothing extra | `GEMINI_API_KEY` env var |
 
 Default = Option 1 (local, no API key needed).
+
+If user picks Option 2 or 3, the installer prints a message reminding them to set the API key in `.haki/cocoindex/.env`.
 
 ---
 
@@ -391,6 +538,7 @@ Default = Option 1 (local, no API key needed).
 ### Integration tests (manual / smoke)
 
 - Fresh project → `npx haki-skills --for claude`
+- Verify `cocoindex-hybrid` skill lands at `.claude/skills/cocoindex-hybrid/SKILL.md`
 - `node .haki/cocoindex/cli/index.js --setup`
 - `node .haki/cocoindex/cli/index.js`
 - Verify PostgreSQL tables created with chunks
@@ -415,8 +563,15 @@ Default = Option 1 (local, no API key needed).
 
 - [ ] `bin/install.js` adds CocoIndex setup step without breaking existing installs
 - [ ] `npx haki-skills --for claude` works identically for users without Python/Docker
+- [ ] `cocoindex-hybrid` SKILL.md ends up at `.claude/skills/cocoindex-hybrid/SKILL.md` for claude target (via existing `createClaudeSkillWrappers` pattern)
 - [ ] When CocoIndex is available: setup completes and index runs successfully
 - [ ] When CocoIndex is missing: `/haki:index` shows clear warning, Haki continues normally
 - [ ] Vector DB is per-project (`.haki/cocoindex/`), isolated between projects
 - [ ] All files written to user project, none to Haki source repo
 - [ ] Phase 1 delivers only: index + detection + docker setup. No RAG, no graph.
+- [ ] Port conflict: installer tries 54320–54329, errors clearly if all in use
+- [ ] `pg_isready` check is definitive — not `docker ps`
+- [ ] `runner.js` handles non-JSON stdout gracefully
+- [ ] `config.js` never throws, always returns defaults on error
+- [ ] `bin/install.js` does not duplicate `lib/detect.js` logic
+- [ ] `--cocoindex-setup` without `--for claude` is a no-op with warning
