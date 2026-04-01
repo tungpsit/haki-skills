@@ -1,0 +1,11 @@
+# CocoIndex Code (ccc)
+/.cocoindex_code/
+
+# Local Claude / agent workspace artifacts
+/.claude/
+/CLAUDE.md
+
+# Local runtime artifacts
+/.superpowers/
+/.haki/runtime/
+/.haki/ui/
