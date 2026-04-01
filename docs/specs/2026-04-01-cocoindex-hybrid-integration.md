@@ -492,9 +492,11 @@ The `--cocoindex-setup` flag only takes effect when `--for claude` is also prese
 Append to project's `.gitignore`:
 
 ```
-# CocoIndex per-project Postgres data
-.haki/cocoindex/postgres_data/
+# CocoIndex SQLite files (if any local file-based DB is used)
+.haki/cocoindex/*.db
 ```
+
+Note: The Docker named volume for PostgreSQL data (defined as `postgres_data:` in `docker-compose.yml`) lives in Docker's managed storage, not the filesystem — no `.gitignore` entry needed.
 
 ---
 
@@ -561,17 +563,21 @@ If user picks Option 2 or 3, the installer prints a message reminding them to se
 
 ## 11. Acceptance Criteria
 
-- [ ] `bin/install.js` adds CocoIndex setup step without breaking existing installs
-- [ ] `npx haki-skills --for claude` works identically for users without Python/Docker
-- [ ] `cocoindex-hybrid` SKILL.md ends up at `.claude/skills/cocoindex-hybrid/SKILL.md` for claude target (via existing `createClaudeSkillWrappers` pattern)
-- [ ] When CocoIndex is available: setup completes and index runs successfully
-- [ ] When CocoIndex is missing: `/haki:index` shows clear warning, Haki continues normally
-- [ ] Vector DB is per-project (`.haki/cocoindex/`), isolated between projects
-- [ ] All files written to user project, none to Haki source repo
+### Implementation Requirements (what the code must satisfy)
+
+- [ ] `cocoindex-hybrid` SKILL.md lands at `.claude/skills/cocoindex-hybrid/SKILL.md` for claude target (via existing `createClaudeSkillWrappers` pattern — no new path logic needed)
+- [ ] `bin/install.js` does NOT duplicate `lib/detect.js` — uses skip-if-exists pattern instead
+- [ ] `--cocoindex-setup` without `--for claude` is a no-op with a warning
+- [ ] `pg_isready` is the definitive postgres check — not `docker ps`
+- [ ] `runner.js` wraps `JSON.parse` in try/catch; surfaces raw stdout in error message
+- [ ] `config.js` never throws — `loadConfig()` returns defaults on any error
+- [ ] Port finder tries 54320–54329, errors with `docker ps` hint if all in use
+
+### Runtime Behavior (what users must observe)
+
+- [ ] `npx haki-skills --for claude` works identically for users without Python/Docker — CocoIndex step is skipped silently
+- [ ] When CocoIndex is missing: `/haki:index` shows clear warning + setup instructions, Haki continues normally
+- [ ] When CocoIndex is available: setup completes → `cocoindex update` runs → chunks indexed
+- [ ] Vector DB is per-project (unique port per project, isolated containers)
+- [ ] All files land in user project `.haki/cocoindex/`, none in Haki source repo
 - [ ] Phase 1 delivers only: index + detection + docker setup. No RAG, no graph.
-- [ ] Port conflict: installer tries 54320–54329, errors clearly if all in use
-- [ ] `pg_isready` check is definitive — not `docker ps`
-- [ ] `runner.js` handles non-JSON stdout gracefully
-- [ ] `config.js` never throws, always returns defaults on error
-- [ ] `bin/install.js` does not duplicate `lib/detect.js` logic
-- [ ] `--cocoindex-setup` without `--for claude` is a no-op with warning
