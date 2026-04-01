@@ -45,6 +45,7 @@ npx haki-skills --cocoindex-setup      # Standalone CocoIndex setup (optional)
 /haki:e2e-gen        # generate test specs from natural-language descriptions
 /haki:api-test       # write and run API integration tests with Vitest
 /haki:docs           # generate user guides with screenshots for modules
+/haki:index          # index codebase into vector DB (optional, requires Python + Docker)
 ```
 
 > **Prerequisite:** An AI coding agent that reads workflow files. The installer generates entry-point configs for Cursor (`.cursor/rules/`), Claude Code (`CLAUDE.md`), and Codex (`AGENTS.md`) automatically.
@@ -74,6 +75,7 @@ new-project → discuss → plan → exec
 | `/haki:docs`          | Generate user guides with screenshots for project modules                     |
 | `/haki:map-codebase`  | 4 parallel agents map stack, architecture, conventions, structure             |
 | `/haki:init`          | Re-run the installer (with `--force` to overwrite)                            |
+| `/haki:index`         | Index codebase + SKILL.md into PostgreSQL/pgvector (optional)              |
 
 ## What Gets Installed
 
@@ -131,7 +133,7 @@ See [docs/specs/2026-04-01-cocoindex-hybrid-integration.md](docs/specs/2026-04-0
 
 | Category        | Skills                                                                                                                                           |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Planning**    | `brainstorming`, `writing-plans`, `executing-plans`                                                                                              |
+| **Planning**    | `brainstorming`, `writing-plans`, `executing-plans`, `cocoindex-hybrid`                                                                          |
 | **Development** | `subagent-driven-development`, `test-driven-development`, `systematic-debugging`                                                                 |
 | **Testing**     | `playwright-automation`, `playwright-intent-to-spec`, `api-testing`                                                                              |
 | **Execution**   | `dispatching-parallel-agents`, `verification-before-completion`, `full-output-enforcement`                                                       |
