@@ -108,7 +108,7 @@ Adjust based on actual flow (wizard, dashboard, etc.).
 - Module docs: `{module-slug}.md` (kebab-case, lowercase)
 - Index: `index.md`
 - Assets dir: `assets/`
-- All under configured `docs_output_dir` (default: `.haki/docs/user-guides`)
+- All under configured `docs_output_dir` (default: `.haki/generated/docs/user-guides`)
 
 ## Quality Checklist
 

@@ -43,8 +43,20 @@ function findProjectRoot(startDir) {
  */
 function hakiPaths(cwd) {
   const base = path.join(cwd, HAKI_DIR);
-  const hakiUi = path.join(base, "ui");
-  const runs = path.join(hakiUi, "runs");
+  const runtime = path.join(base, "runtime");
+  const runtimeUi = path.join(runtime, "ui");
+  const runtimeUiRuns = path.join(runtimeUi, "runs");
+  const runtimeUiSnapshots = path.join(runtimeUi, "snapshots");
+  const runtimeBrainstorm = path.join(runtime, "brainstorm");
+  const runtimeBrainstormSessions = path.join(runtimeBrainstorm, "sessions");
+  const generated = path.join(base, "generated");
+  const generatedDocs = path.join(generated, "docs");
+  const generatedDocsUserGuides = path.join(generatedDocs, "user-guides");
+
+  const legacyHakiUi = path.join(base, "ui");
+  const legacyHakiUiRuns = path.join(legacyHakiUi, "runs");
+  const legacyHakiUiSnapshots = path.join(legacyHakiUi, "snapshots");
+
   return {
     haki: base,
     project: path.join(base, "PROJECT.md"),
@@ -54,11 +66,21 @@ function hakiPaths(cwd) {
     research: path.join(base, "research"),
     codebase: path.join(base, "codebase"),
     tasks: path.join(base, "tasks"),
-    haki_ui: hakiUi,
-    haki_ui_runs: runs,
-    haki_ui_current_run: path.join(hakiUi, "current-run.json"),
-    haki_ui_current_log: path.join(hakiUi, "current-run.jsonl"),
-    haki_ui_snapshots: path.join(hakiUi, "snapshots"),
+    runtime,
+    runtime_ui: runtimeUi,
+    runtime_ui_runs: runtimeUiRuns,
+    runtime_ui_current_run: path.join(runtimeUi, "current-run.json"),
+    runtime_ui_snapshots: runtimeUiSnapshots,
+    runtime_brainstorm: runtimeBrainstorm,
+    runtime_brainstorm_sessions: runtimeBrainstormSessions,
+    generated,
+    generated_docs: generatedDocs,
+    generated_docs_user_guides: generatedDocsUserGuides,
+    haki_ui: legacyHakiUi,
+    haki_ui_runs: legacyHakiUiRuns,
+    haki_ui_current_run: path.join(legacyHakiUi, "current-run.json"),
+    haki_ui_current_log: path.join(legacyHakiUi, "current-run.jsonl"),
+    haki_ui_snapshots: legacyHakiUiSnapshots,
   };
 }
 

@@ -1,10 +1,11 @@
 const fs = require("fs");
 const path = require("path");
 const http = require("http");
-const { hakiPaths, findProjectRoot, safeReadFile } = require("../core.cjs");
+const { findProjectRoot, safeReadFile } = require("../core.cjs");
 const {
-  readEvents,
-  readCurrentRunMeta,
+  readEventsForRun,
+  readRunMeta,
+  resolveStaticDir,
 } = require("./event-store-jsonl.cjs");
 const { buildProjections } = require("./projections.cjs");
 const { buildReplayState } = require("./replay-engine.cjs");
@@ -35,34 +36,32 @@ function serveStaticFile(filePath, res) {
 
 function createServer(options = {}) {
   const cwd = findProjectRoot(options.cwd || process.cwd());
-  const paths = hakiPaths(cwd);
-  const staticDir = options.staticDir || path.resolve(__dirname, "../../haki-ui-static");
+  const staticDir = options.staticDir || resolveStaticDir();
 
   return http.createServer((req, res) => {
     const url = new URL(req.url, "http://localhost");
 
     if (url.pathname === "/api/events") {
-      const meta = readCurrentRunMeta(paths.haki_ui_current_run);
-      const events = meta?.logPath ? readEvents(meta.logPath) : [];
+      const meta = readRunMeta(cwd);
+      const events = meta ? readEventsForRun(meta) : [];
       return sendJson(res, 200, { run: meta, events });
     }
 
     if (url.pathname === "/api/projections") {
-      const meta = readCurrentRunMeta(paths.haki_ui_current_run);
-      const events = meta?.logPath ? readEvents(meta.logPath) : [];
+      const meta = readRunMeta(cwd);
+      const events = meta ? readEventsForRun(meta) : [];
       return sendJson(res, 200, { run: meta, projections: buildProjections(events) });
     }
 
     if (url.pathname === "/api/replay") {
-      const meta = readCurrentRunMeta(paths.haki_ui_current_run);
-      const events = meta?.logPath ? readEvents(meta.logPath) : [];
+      const meta = readRunMeta(cwd);
+      const events = meta ? readEventsForRun(meta) : [];
       const playhead = Number(url.searchParams.get("playhead"));
       return sendJson(res, 200, { run: meta, replay: buildReplayState(events, playhead) });
     }
 
     if (url.pathname === "/api/stream") {
-      const meta = readCurrentRunMeta(paths.haki_ui_current_run);
-      const logPath = meta?.logPath;
+      const meta = readRunMeta(cwd);
       const seen = new Set();
 
       res.writeHead(200, {
@@ -72,7 +71,8 @@ function createServer(options = {}) {
       });
 
       const pushEvents = () => {
-        const events = logPath ? readEvents(logPath) : [];
+        const currentMeta = readRunMeta(cwd) || meta;
+        const events = currentMeta ? readEventsForRun(currentMeta) : [];
         for (const event of events) {
           if (seen.has(event.id)) continue;
           seen.add(event.id);

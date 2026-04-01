@@ -84,16 +84,28 @@ CLAUDE.md                # Claude Code entry point
 .cursor/rules/haki.mdc   # Cursor rules
 .agent/
 ├── workflows/           # 13 haki command files
-├── bin/                 # CLI tools (haki-tools.cjs)
+├── bin/                 # CLI tools (haki-tools.cjs, haki-ui.cjs)
 ├── skills/              # 22 skill folders
 ├── templates/           # project, roadmap, task templates
 └── references/          # questioning guide, UI formatting
-.haki/                   # runtime data (gitignored)
+.haki/                   # runtime + generated data (gitignored)
 ├── research/
 ├── codebase/
 ├── tasks/
-└── docs/user-guides/    # generated user documentation
+├── runtime/
+│   ├── ui/
+│   │   ├── current-run.json
+│   │   ├── runs/
+│   │   └── snapshots/
+│   └── brainstorm/
+│       └── sessions/
+└── generated/
+    └── docs/user-guides/ # generated user documentation
 ```
+
+`haki-ui` stores its append-only event logs and current-run pointer under `.haki/runtime/ui/`. Brainstorming mockups persisted with `--project-dir` live under `.haki/runtime/brainstorm/sessions/`.
+
+Legacy `.haki/ui/` runtime data is still read for compatibility during the transition.
 
 > Agent config files are **non-destructive** — the installer skips them if they already exist, so your custom configs are never overwritten.
 

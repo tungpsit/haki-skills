@@ -11,7 +11,7 @@ Create end-user documentation for a module with screenshots, flow diagrams, and 
 1. **Read skill instructions:**
    - Read: `.agent/skills/user-docs-generator/SKILL.md`
    - Read config: `docs_language` and `docs_output_dir` from `.haki/config.json`
-   - Default language: `vi`, default dir: `.haki/docs/user-guides`
+   - Default language: `vi`, default dir: `.haki/generated/docs/user-guides`
 
 2. **Resolve module(s):**
 

@@ -1,30 +1,24 @@
-const path = require("path");
-const { hakiPaths } = require("../core.cjs");
 const { createEvent, createRunId, createSessionId } = require("./event-schema.cjs");
 const {
-  appendEvent,
-  writeCurrentRunMeta,
-  readCurrentRunMeta,
+  appendEventToRun,
+  buildRunContext,
+  readRunMeta,
+  writeRunMeta,
 } = require("./event-store-jsonl.cjs");
 
 function getOrCreateRunContext(cwd) {
-  const paths = hakiPaths(cwd);
-  const existing = readCurrentRunMeta(paths.haki_ui_current_run);
+  const existing = readRunMeta(cwd);
   if (existing?.runId && existing?.sessionId && existing?.logPath) {
     return existing;
   }
 
   const runId = createRunId();
   const sessionId = createSessionId();
-  const logPath = path.join(paths.haki_ui_runs, `${runId}.jsonl`);
-  const context = { runId, sessionId, logPath, createdAt: new Date().toISOString() };
-  writeCurrentRunMeta(paths.haki_ui_current_run, context);
-  return context;
+  return buildRunContext(cwd, runId, sessionId);
 }
 
 function setCurrentRunContext(cwd, context) {
-  const paths = hakiPaths(cwd);
-  writeCurrentRunMeta(paths.haki_ui_current_run, context);
+  return writeRunMeta(cwd, context);
 }
 
 function emitEvent(cwd, input) {
@@ -35,15 +29,30 @@ function emitEvent(cwd, input) {
       sessionId: context.sessionId,
       ...input,
     });
-    appendEvent(context.logPath, event);
+    appendEventToRun(context, event);
     return event;
   } catch {
     return null;
   }
 }
 
+function createRunContext(cwd, createdAt = new Date().toISOString()) {
+  return buildRunContext(cwd, createRunId(), createSessionId(), createdAt);
+}
+
+function readCurrentRunContext(cwd) {
+  return readRunMeta(cwd);
+}
+
+function writeCurrentRunContext(cwd, context) {
+  return writeRunMeta(cwd, context);
+}
+
 module.exports = {
   getOrCreateRunContext,
   setCurrentRunContext,
   emitEvent,
+  createRunContext,
+  readCurrentRunContext,
+  writeCurrentRunContext,
 };

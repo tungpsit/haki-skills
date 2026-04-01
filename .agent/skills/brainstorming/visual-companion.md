@@ -22,7 +22,7 @@ Decide per-question, not per-session. The test: **would the user understand this
 - **Technical decisions** — API design, data modeling, architectural approach selection
 - **Clarifying questions** — anything where the answer is words, not a visual preference
 
-A question *about* a UI topic is not automatically a visual question. "What kind of wizard do you want?" is conceptual — use the terminal. "Which of these wizard layouts feels right?" is visual — use the browser.
+A question _about_ a UI topic is not automatically a visual question. "What kind of wizard do you want?" is conceptual — use the terminal. "Which of these wizard layouts feels right?" is visual — use the browser.
 
 ## How It Works
 
@@ -37,33 +37,37 @@ The server watches a directory for HTML files and serves the newest one to the b
 scripts/start-server.sh --project-dir /path/to/project
 
 # Returns: {"type":"server-started","port":52341,"url":"http://localhost:52341",
-#           "screen_dir":"/path/to/project/.superpowers/brainstorm/12345-1706000000"}
+#           "screen_dir":"/path/to/project/.haki/runtime/brainstorm/sessions/12345-1706000000"}
 ```
 
 Save `screen_dir` from the response. Tell user to open the URL.
 
-**Finding connection info:** The server writes its startup JSON to `$SCREEN_DIR/.server-info`. If you launched the server in the background and didn't capture stdout, read that file to get the URL and port. When using `--project-dir`, check `<project>/.superpowers/brainstorm/` for the session directory.
+**Finding connection info:** The server writes its startup JSON to `$SCREEN_DIR/.server-info`. If you launched the server in the background and didn't capture stdout, read that file to get the URL and port. When using `--project-dir`, check `<project>/.haki/runtime/brainstorm/sessions/` for the session directory.
 
-**Note:** Pass the project root as `--project-dir` so mockups persist in `.superpowers/brainstorm/` and survive server restarts. Without it, files go to `/tmp` and get cleaned up. Remind the user to add `.superpowers/` to `.gitignore` if it's not already there.
+**Note:** Pass the project root as `--project-dir` so mockups persist in `.haki/runtime/brainstorm/sessions/` and survive server restarts. Without it, files go to `/tmp` and get cleaned up. Remind the user to add `.haki/` to `.gitignore` if it's not already there.
 
 **Launching the server by platform:**
 
 **Claude Code (macOS / Linux):**
+
 ```bash
 # Default mode works — the script backgrounds the server itself
 scripts/start-server.sh --project-dir /path/to/project
 ```
 
 **Claude Code (Windows):**
+
 ```bash
 # Windows auto-detects and uses foreground mode, which blocks the tool call.
 # Use run_in_background: true on the Bash tool call so the server survives
 # across conversation turns.
 scripts/start-server.sh --project-dir /path/to/project
 ```
+
 When calling this via the Bash tool, set `run_in_background: true`. Then read `$SCREEN_DIR/.server-info` on the next turn to get the URL and port.
 
 **Codex:**
+
 ```bash
 # Codex reaps background processes. The script auto-detects CODEX_CI and
 # switches to foreground mode. Run it normally — no extra flags needed.
@@ -71,6 +75,7 @@ scripts/start-server.sh --project-dir /path/to/project
 ```
 
 **Gemini CLI:**
+
 ```bash
 # Use --foreground and set is_background: true on your shell tool call
 # so the process survives across turns
@@ -115,7 +120,9 @@ Use `--url-host` to control what hostname is printed in the returned URL JSON.
 
    ```html
    <!-- filename: waiting.html (or waiting-2.html, etc.) -->
-   <div style="display:flex;align-items:center;justify-content:center;min-height:60vh">
+   <div
+     style="display:flex;align-items:center;justify-content:center;min-height:60vh"
+   >
      <p class="subtitle">Continuing in terminal...</p>
    </div>
    ```
@@ -216,8 +223,18 @@ The frame template provides these CSS classes for your content:
 
 ```html
 <div class="pros-cons">
-  <div class="pros"><h4>Pros</h4><ul><li>Benefit</li></ul></div>
-  <div class="cons"><h4>Cons</h4><ul><li>Drawback</li></ul></div>
+  <div class="pros">
+    <h4>Pros</h4>
+    <ul>
+      <li>Benefit</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>Cons</h4>
+    <ul>
+      <li>Drawback</li>
+    </ul>
+  </div>
 </div>
 ```
 
@@ -230,7 +247,7 @@ The frame template provides these CSS classes for your content:
   <div class="mock-content">Main content area</div>
 </div>
 <button class="mock-button">Action Button</button>
-<input class="mock-input" placeholder="Input field">
+<input class="mock-input" placeholder="Input field" />
 <div class="placeholder">Placeholder area</div>
 ```
 
@@ -278,7 +295,7 @@ If `.events` doesn't exist, the user didn't interact with the browser — use on
 scripts/stop-server.sh $SCREEN_DIR
 ```
 
-If the session used `--project-dir`, mockup files persist in `.superpowers/brainstorm/` for later reference. Only `/tmp` sessions get deleted on stop.
+If the session used `--project-dir`, mockup files persist in `.haki/runtime/brainstorm/sessions/` for later reference. Only `/tmp` sessions get deleted on stop.
 
 ## Reference
 

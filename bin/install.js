@@ -265,7 +265,15 @@ Examples:
   }
 
   // Create .haki/ runtime directory
-  for (const sub of ["research", "codebase", "tasks"]) {
+  for (const sub of [
+    "research",
+    "codebase",
+    "tasks",
+    path.join("runtime", "ui", "runs"),
+    path.join("runtime", "ui", "snapshots"),
+    path.join("runtime", "brainstorm", "sessions"),
+    path.join("generated", "docs", "user-guides"),
+  ]) {
     fs.mkdirSync(path.join(targetDir, ".haki", sub), { recursive: true });
   }
   console.log("   ✅ .haki/ (runtime directory)");

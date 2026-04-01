@@ -22,7 +22,7 @@ Thêm workflow `/haki:docs` + skill `user-docs-generator` vào haki-skills. Agen
 ## Output Structure (trong project sử dụng)
 
 ```
-.haki/docs/user-guides/
+.haki/generated/docs/user-guides/
 ├── index.md
 ├── assets/
 │   ├── {module}-{nn}-{action}.png
@@ -38,7 +38,7 @@ Thêm vào `.haki/config.json`:
 ```json
 {
   "docs_language": "vi",
-  "docs_output_dir": ".haki/docs/user-guides"
+  "docs_output_dir": ".haki/generated/docs/user-guides"
 }
 ```
 
