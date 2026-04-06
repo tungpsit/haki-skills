@@ -22,6 +22,12 @@
 
 const fs = require("fs");
 const path = require("path");
+const {
+  findFreePort,
+  promptEmbeddingModel,
+  generateCocoIndexStructure,
+  run: runShell,
+} = require("./coco-setup.js");
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -177,9 +183,57 @@ Read and follow the workflow instructions in \`.claude/workflows/${filename}\` e
   return count;
 }
 
+// ─── CocoIndex Setup ──────────────────────────────────────────────────────────
+
+async function cocoIndexSetupStep(targetDir) {
+  const cocoDir = path.join(targetDir, ".haki", "cocoindex");
+
+  // Already configured — skip
+  if (fs.existsSync(cocoDir)) {
+    console.log("   ⏭️  CocoIndex already configured — skipping");
+    return;
+  }
+
+  // Run detection
+  const checks = {
+    python:    await runShell("python3 --version").then(() => true).catch(() => false),
+    cocoindex: await runShell("pip show cocoindex").then(() => true).catch(() => false),
+    docker:    await runShell("docker --version").then(() => true).catch(() => false),
+  };
+
+  if (!checks.python) {
+    console.log("   ⚠️  Python not found — skipping CocoIndex");
+    console.log("   ℹ️  Install Python then re-run: npx haki-skills --cocoindex-setup");
+    return;
+  }
+
+  if (!checks.docker) {
+    console.log("   ⚠️  Docker not found — skipping CocoIndex");
+    console.log("   ℹ️  Install Docker then re-run: npx haki-skills --cocoindex-setup");
+    return;
+  }
+
+  if (!checks.cocoindex) {
+    console.log("   ⚠️  CocoIndex not installed");
+    console.log("   ℹ️  pip install cocoindex[embeddings]");
+    console.log("   ℹ️  Then: node .haki/cocoindex/cli/index.js --setup");
+    return;
+  }
+
+  // All ready — interactive model selection
+  const model = await promptEmbeddingModel();
+  const port = await findFreePort(54320);
+
+  await generateCocoIndexStructure(targetDir, { model, port });
+
+  console.log("   ✅ CocoIndex setup complete");
+  console.log("   ℹ️  To start Postgres: cd .haki/cocoindex && docker compose up -d");
+  console.log("   ℹ️  To index: node .haki/cocoindex/cli/index.js");
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────────
 
-function main() {
+async function main() {
   const args = process.argv.slice(2);
 
   if (args.includes("--help") || args.includes("-h")) {
@@ -189,30 +243,52 @@ Haki Init — Install haki workflow system into a project
 Usage:  npx haki-skills [target-dir] [options]
 
 Options:
-  --for <agent>  Generate config for a specific agent (default: antigravity)
-                 Agents: ${KNOWN_AGENTS.join(", ")}, all
-                 Comma-separated: --for claude,cursor
-  --force        Overwrite existing .agent/ files
-  --help         Show this help
+  --for <agent>       Generate config for a specific agent (default: antigravity)
+                      Agents: ${KNOWN_AGENTS.join(", ")}, all
+                      Comma-separated: --for claude,cursor
+  --force             Overwrite existing .agent/ files
+  --cocoindex-setup   Run CocoIndex setup (implies --for claude)
+  --help              Show this help
 
 Examples:
-  npx haki-skills                      # Antigravity (default)
-  npx haki-skills --for claude         # Claude Code
-  npx haki-skills --for cursor         # Cursor
-  npx haki-skills --for codex          # Codex / AGENTS.md
-  npx haki-skills --for claude,cursor  # Multiple agents
-  npx haki-skills --for all            # All agents
+  npx haki-skills                         # Antigravity (default)
+  npx haki-skills --for claude            # Claude Code
+  npx haki-skills --for cursor            # Cursor
+  npx haki-skills --for codex             # Codex / AGENTS.md
+  npx haki-skills --for claude,cursor    # Multiple agents
+  npx haki-skills --for all               # All agents
+  npx haki-skills --cocoindex-setup       # Standalone CocoIndex setup
 `);
     process.exit(0);
   }
 
   const force = args.includes("--force");
+  const cocoSetup = args.includes("--cocoindex-setup");
   const selectedAgents = parseForArg(args);
   const targetDir = path.resolve(
     args.find(
       (a) => !a.startsWith("-") && a !== args[args.indexOf("--for") + 1],
     ) || ".",
   );
+
+  // Handle --cocoindex-setup standalone (no --for specified)
+  if (cocoSetup && !selectedAgents.includes("claude")) {
+    selectedAgents.push("claude");
+  }
+
+  // --cocoindex-setup without python/docker is a no-op
+  if (cocoSetup) {
+    const checks = {
+      python:    await runShell("python3 --version").then(() => true).catch(() => false),
+      docker:    await runShell("docker --version").then(() => true).catch(() => false),
+    };
+    if (!checks.python || !checks.docker) {
+      console.log("   ⚠️  --cocoindex-setup requires Python and Docker");
+      console.log("   ℹ️  Install them, then re-run: npx haki-skills --cocoindex-setup");
+      const claIdx = selectedAgents.indexOf("claude");
+      if (claIdx > -1) selectedAgents.splice(claIdx, 1);
+    }
+  }
 
   if (!fs.existsSync(targetDir)) {
     console.error(`Error: Target directory does not exist: ${targetDir}`);
@@ -299,14 +375,29 @@ Examples:
     }
   }
 
+  // Run CocoIndex setup for claude target
+  if (selectedAgents.includes("claude")) {
+    await cocoIndexSetupStep(targetDir);
+  }
+
   // Update .gitignore
   if (fs.existsSync(path.join(targetDir, ".git"))) {
     if (ensureGitignore(targetDir))
       console.log("   ✅ .gitignore (added .haki/)");
+    // Append CocoIndex-specific entry
+    const giPath = path.join(targetDir, ".gitignore");
+    const gi = fs.readFileSync(giPath, "utf-8");
+    const cocoEntry = "\n# CocoIndex vector DB data\n.haki/cocoindex/*.db\n";
+    if (!gi.includes(".haki/cocoindex/*.db")) {
+      fs.writeFileSync(giPath, gi.replace(/\n*$/, "") + cocoEntry, "utf-8");
+    }
   }
 
   console.log(`\n✨ Done! ${totalFiles} files installed`);
   console.log(`\n▶ Next: /haki:new-project (or /haki:next)\n`);
 }
 
-main();
+main().catch((err) => {
+  console.error("Fatal error:", err);
+  process.exit(1);
+});

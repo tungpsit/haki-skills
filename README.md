@@ -23,13 +23,14 @@ Haki gives AI coding agents a repeatable workflow: ask the right questions, rese
 ### Install into any project
 
 ```bash
-npx haki-skills                      # Antigravity (default)
-npx haki-skills --for claude         # + CLAUDE.md (Claude Code)
-npx haki-skills --for cursor         # + .cursor/rules/haki.mdc (Cursor)
-npx haki-skills --for codex          # + AGENTS.md (Codex)
-npx haki-skills --for claude,cursor  # Multiple agents
-npx haki-skills --for all            # All agents
-npx haki-skills ./my-app --for claude  # Target a specific directory
+npx haki-skills                         # Antigravity (default)
+npx haki-skills --for claude            # + CLAUDE.md (Claude Code)
+npx haki-skills --for cursor            # + .cursor/rules/haki.mdc (Cursor)
+npx haki-skills --for codex             # + AGENTS.md (Codex)
+npx haki-skills --for claude,cursor     # Multiple agents
+npx haki-skills --for all               # All agents
+npx haki-skills ./my-app --for claude   # Target a specific directory
+npx haki-skills --cocoindex-setup      # Standalone CocoIndex setup (optional)
 ```
 
 ### Start building
@@ -44,6 +45,7 @@ npx haki-skills ./my-app --for claude  # Target a specific directory
 /haki:e2e-gen        # generate test specs from natural-language descriptions
 /haki:api-test       # write and run API integration tests with Vitest
 /haki:docs           # generate user guides with screenshots for modules
+/haki:index          # index codebase into vector DB (optional, requires Python + Docker)
 ```
 
 > **Prerequisite:** An AI coding agent that reads workflow files. The installer generates entry-point configs for Cursor (`.cursor/rules/`), Claude Code (`CLAUDE.md`), and Codex (`AGENTS.md`) automatically.
@@ -73,6 +75,7 @@ new-project → discuss → plan → exec
 | `/haki:docs`          | Generate user guides with screenshots for project modules                     |
 | `/haki:map-codebase`  | 4 parallel agents map stack, architecture, conventions, structure             |
 | `/haki:init`          | Re-run the installer (with `--force` to overwrite)                            |
+| `/haki:index`         | Index codebase + SKILL.md into PostgreSQL/pgvector (optional)              |
 
 ## What Gets Installed
 
@@ -85,7 +88,7 @@ CLAUDE.md                # Claude Code entry point
 .agent/
 ├── workflows/           # 13 haki command files
 ├── bin/                 # CLI tools (haki-tools.cjs, haki-ui.cjs)
-├── skills/              # 22 skill folders
+├── skills/              # 23 skill folders (incl. cocoindex-hybrid)
 ├── templates/           # project, roadmap, task templates
 └── references/          # questioning guide, UI formatting
 .haki/                   # runtime + generated data (gitignored)
@@ -109,11 +112,28 @@ Legacy `.haki/ui/` runtime data is still read for compatibility during the trans
 
 > Agent config files are **non-destructive** — the installer skips them if they already exist, so your custom configs are never overwritten.
 
+### CocoIndex Integration (Optional)
+
+When installing with `--for claude`, Haki can optionally set up [CocoIndex](https://cocoindex.io) for semantic code search and RAG-powered planning.
+
+**Requirements:** Python 3 + Docker
+
+**To enable:** Re-run `npx haki-skills --cocoindex-setup` (or install with `--for claude` on a machine with Python + Docker).
+
+**What it sets up:**
+- Per-project PostgreSQL + pgvector (Docker)
+- CLI: `node .haki/cocoindex/cli/index.js` to index codebase
+- `/haki:index` skill for semantic code search
+
+**Embedding models:** Local (default, no API key) or OpenAI/Gemini (requires API key).
+
+See [docs/specs/2026-04-01-cocoindex-hybrid-integration.md](docs/specs/2026-04-01-cocoindex-hybrid-integration.md) for design details.
+
 ### Included Skills
 
 | Category        | Skills                                                                                                                                           |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Planning**    | `brainstorming`, `writing-plans`, `executing-plans`                                                                                              |
+| **Planning**    | `brainstorming`, `writing-plans`, `executing-plans`, `cocoindex-hybrid`                                                                          |
 | **Development** | `subagent-driven-development`, `test-driven-development`, `systematic-debugging`                                                                 |
 | **Testing**     | `playwright-automation`, `playwright-intent-to-spec`, `api-testing`                                                                              |
 | **Execution**   | `dispatching-parallel-agents`, `verification-before-completion`, `full-output-enforcement`                                                       |
