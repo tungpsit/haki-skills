@@ -47,8 +47,8 @@
 - [x] Update brainstorming skill — thêm report step + `.haki/` paths
 - [x] Create `.haki/ROADMAP.md` — wiki hub cho chính dự án
 - [x] Create ADR — `.haki/` là project brain
-- [ ] Update writing-plans skill — thêm report step + `.haki/` paths
-- [ ] Update executing-plans skill — thêm report step + `.haki/` paths
+- [x] Update writing-plans skill — thêm report step + `.haki/` paths
+- [x] Update executing-plans skill — thêm report step + `.haki/` paths
 
 ---
 
