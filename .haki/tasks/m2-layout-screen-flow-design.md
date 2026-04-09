@@ -16,10 +16,10 @@ Tạo `haki:layout` — skill + workflow cho layout design, screen flow navigati
 
 | # | Task | Status |
 |---|---|---|
-| 1 | Create `.agent/skills/layout-design/SKILL.md` | ⏳ Pending |
-| 2 | Create `.agent/workflows/haki-layout.md` | ⏳ Pending |
-| 3 | Update installer — thêm `layouts/` + `screens/` vào `.haki/` | ⏳ Pending |
-| 4 | Create M2 task doc | ⏳ Pending |
+| 1 | Create `.agent/skills/layout-design/SKILL.md` | ✅ |
+| 2 | Create `.agent/workflows/haki-layout.md` | ✅ |
+| 3 | Update installer — thêm `layouts/` + `screens/` vào `.haki/` | ✅ |
+| 4 | Create M2 task doc | ✅ |
 
 ---
 

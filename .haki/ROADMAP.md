@@ -53,7 +53,7 @@
 
 ---
 
-### [M2: Layout + Screen Flow + FE Doc](./tasks/m2-layout-screen-flow-design.md) — ⏳ Pending
+### [M2: Layout + Screen Flow + FE Doc](./tasks/m2-layout-screen-flow-design.md) — ✅ Completed
 
 **Mục tiêu:** Tạo `haki:layout` skill cho layout design, screen flow, và FE documentation.
 
