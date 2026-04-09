@@ -15,7 +15,7 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Context:** This should be run in a dedicated worktree (created by brainstorming skill).
 
-**Save plans to:** `docs/haki/plans/YYYY-MM-DD-<feature-name>.md`
+**Save plans to:** `.haki/tasks/YYYY-MM-DD-<feature-name>-plan.md`
 
 - (User preferences for plan location override this default)
 
@@ -133,7 +133,7 @@ After writing the complete plan:
 
 After saving the plan, offer execution choice:
 
-**"Plan complete and saved to `docs/haki/plans/<filename>.md`. Two execution options:**
+**"Plan complete and saved to `.haki/tasks/YYYY-MM-DD-<feature-name>-plan.md`. Two execution options:**
 
 **1. Subagent-Driven (recommended)** - I dispatch a fresh subagent per task, review between tasks, fast iteration
 
@@ -150,3 +150,17 @@ After saving the plan, offer execution choice:
 
 - **REQUIRED SUB-SKILL:** Use haki:executing-plans
 - Batch execution with checkpoints for review
+
+## Delta Report
+
+After the plan is saved and before execution handoff, record the delta:
+
+1. **Pre-update git snapshot:** `git add .haki/ -m "brain: pre-update snapshot"`
+2. **Plan doc** is already saved to `.haki/tasks/` in the save step above
+3. **Update `.haki/ROADMAP.md`** — add link under Knowledge Base / Tasks section
+4. **Commit:** `git add .haki/ && git commit -m "plan: <feature-name>"`
+5. **Notify user:**
+
+> "Đã ghi plan vào `.haki/`: `.haki/tasks/YYYY-MM-DD-<feature-name>-plan.md` — link trong ROADMAP.md. Rollback: `git reset HEAD~1`"
+
+**Rollback:** `git reset HEAD~1`

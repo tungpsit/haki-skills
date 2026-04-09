@@ -68,6 +68,20 @@ After all tasks complete and verified:
 - Stop when blocked, don't guess
 - Never start implementation on main/master branch without explicit user consent
 
+## Delta Report
+
+After all tasks are completed and verified, record the delta:
+
+1. **Pre-update git snapshot:** `git add .haki/ -m "brain: pre-update snapshot"`
+2. **Update `.haki/tasks/<plan-name>.md`** — mark completed tasks
+3. **Update `.haki/ROADMAP.md`** — update milestone/task status if changed
+4. **Commit:** `git add .haki/ && git commit -m "feat: complete <feature-name>"`
+5. **Notify user:**
+
+> "Đã hoàn thành `<feature-name>`. Đã cập nhật `.haki/tasks/<plan-name>.md` và `ROADMAP.md`. Rollback: `git reset HEAD~1`"
+
+**Rollback:** `git reset HEAD~1`
+
 ## Integration
 
 **Required workflow skills:**
