@@ -116,26 +116,6 @@ function copyDirRecursive(src, dst, filter) {
   return count;
 }
 
-function ensureGitignore(targetDir) {
-  const gitignorePath = path.join(targetDir, ".gitignore");
-  const entry = ".haki/";
-
-  let content = "";
-  try {
-    content = fs.readFileSync(gitignorePath, "utf-8");
-  } catch {}
-
-  if (content.includes(entry)) return false;
-
-  const separator = content.length > 0 && !content.endsWith("\n") ? "\n" : "";
-  fs.writeFileSync(
-    gitignorePath,
-    content + `${separator}\n# Haki runtime data\n${entry}\n`,
-    "utf-8",
-  );
-  return true;
-}
-
 /**
  * Create skill wrappers for Claude Code workflows.
  * Each workflow file gets a corresponding skill in .claude/skills/
@@ -264,10 +244,13 @@ Examples:
     totalFiles += wrapperCount;
   }
 
-  // Create .haki/ runtime directory
+  // Create .haki/ structure
+  // Committed (docs): specs/, decisions/, research/, tasks/, ROADMAP.md
+  // Gitignored: runtime/
   for (const sub of [
+    "specs",
+    "decisions",
     "research",
-    "codebase",
     "tasks",
     path.join("runtime", "ui", "runs"),
     path.join("runtime", "ui", "snapshots"),
@@ -276,7 +259,7 @@ Examples:
   ]) {
     fs.mkdirSync(path.join(targetDir, ".haki", sub), { recursive: true });
   }
-  console.log("   ✅ .haki/ (runtime directory)");
+  console.log("   ✅ .haki/ (specs/, decisions/, research/, tasks/, runtime/)");
 
   // Generate agent config files for selected agents (non-destructive)
   const agentConfigs = selectedAgents
@@ -299,10 +282,28 @@ Examples:
     }
   }
 
-  // Update .gitignore
+  // Update .gitignore — only ignore .haki/runtime/ and .haki/ui/
   if (fs.existsSync(path.join(targetDir, ".git"))) {
-    if (ensureGitignore(targetDir))
-      console.log("   ✅ .gitignore (added .haki/)");
+    const giPath = path.join(targetDir, ".gitignore");
+    let content = "";
+    try { content = fs.readFileSync(giPath, "utf-8"); } catch {}
+
+    const lines = [
+      "# Haki runtime artifacts (do NOT commit)",
+      "/.haki/runtime/",
+      "/.haki/ui/",
+    ];
+
+    let changed = false;
+    for (const line of lines) {
+      if (!content.includes(line)) {
+        const sep = content.length > 0 && !content.endsWith("\n") ? "\n" : "";
+        content += sep + line + "\n";
+        changed = true;
+      }
+    }
+    if (changed) fs.writeFileSync(giPath, content, "utf-8");
+    console.log("   ✅ .gitignore (added .haki/runtime/ + .haki/ui/ to ignore)");
   }
 
   console.log(`\n✨ Done! ${totalFiles} files installed`);

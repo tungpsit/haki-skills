@@ -5,7 +5,10 @@
 /.claude/
 /CLAUDE.md
 
-# Local runtime artifacts
-/.superpowers/
+# Haki runtime artifacts (gitignored — do NOT commit)
+# Docs, specs, decisions, research, tasks → committed in .haki/
 /.haki/runtime/
 /.haki/ui/
+
+# Local brainstorm mockups
+/.superpowers/

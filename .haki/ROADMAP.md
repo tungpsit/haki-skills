@@ -1,0 +1,73 @@
+# Project Roadmap — Haki Skills
+
+> **Hub:** [.haki/](.haki/) là project brain — chứa toàn bộ docs, specs, decisions, research. Đọc file này trước để hiểu context dự án.
+
+---
+
+## Project Context
+
+**Vision:** Haki Skills là một AI workflow system giúp AI coding agent làm việc theo specs-driven design. Mỗi bước trong quy trình đều được ghi lại vào `.haki/` và link vào `ROADMAP.md`.
+
+**Tech Stack:** Node.js ≥ 18, Pure CJS, Event Sourcing (JSONL), Context7 MCP, Playwright, Vitest
+
+**Target Users:**
+- Developer dùng AI coding agents (Claude Code, Cursor, Codex, Gemini CLI, Antigravity)
+- Các dự án muốn áp dụng specs-driven workflow
+
+**Key Decisions:**
+
+| Decision | Choice | Rationale |
+|---|---|---|
+| `.haki/` là project brain | `.haki/` (git committed) | Chứa specs, decisions, research, tasks — AI hiểu context qua `ROADMAP.md` |
+| `.haki/runtime/` là gitignored | `.haki/runtime/` | Chỉ chứa event logs, temp state — không commit |
+| Delta-based report | B — decisions + milestones/tasks | Chỉ report khi có thay đổi thực sự |
+| AI ghi trực tiếp + rollback | C | AI ghi trực tiếp, user rollback bằng `git reset HEAD~1` |
+| Delta detection | D — Hybrid (skill-level + proactive) | Mỗi skill có report step + AI chủ động check trước mỗi bước |
+
+**Out of Scope:**
+- UI của chính haki-skills project
+- Static site generation cho docs
+- Multi-language docs (phase 2)
+
+**Contributing:**
+- Repository: [github.com/tungpsit/haki-skills](https://github.com/tungpsit/haki-skills)
+- Tests: `npm test`
+
+---
+
+## Milestones
+
+### [M1: Specs-Driven Design System](./tasks/m1-specs-driven-design-system.md) — ⏳ In Progress
+
+**Mục tiêu:** Biến haki-skills thành project tự self-document, AI hiểu context từ `.haki/ROADMAP.md`.
+
+**Tasks:**
+- [ ] Update .gitignore — chỉ ignore `.haki/runtime/` và `.haki/ui/`
+- [x] Update installer — tạo `.haki/` với cấu trúc mới
+- [x] Update brainstorming skill — thêm report step + `.haki/` paths
+- [x] Create `.haki/ROADMAP.md` — wiki hub cho chính dự án
+- [x] Create ADR — `.haki/` là project brain
+- [ ] Update writing-plans skill — thêm report step + `.haki/` paths
+- [ ] Update executing-plans skill — thêm report step + `.haki/` paths
+- [ ] Migrate spec doc từ `.haki/specs/` cũ → `.haki/specs/` mới
+
+---
+
+## Knowledge Base
+
+### Specs (newest first)
+
+- [2026-04-09-specs-driven-design](./specs/2026-04-09-specs-driven-design.md) — `.haki/` là project brain
+- [2026-03-24-user-docs-generator-design](./specs/2026-03-24-user-docs-generator-design.md) — Workflow tạo user guide
+
+### Decisions (newest first)
+
+- [2026-04-09-haki-brain-location-adr](./decisions/2026-04-09-haki-brain-location-adr.md) — ADR: `.haki/` là project brain, `.haki/runtime/` gitignored
+
+### Research (newest first)
+
+_(Chưa có research doc nào)_
+
+### Tasks (by milestone)
+
+- [M1: Specs-Driven Design System](./tasks/m1-specs-driven-design-system.md)

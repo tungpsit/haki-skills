@@ -21,15 +21,16 @@ Every project goes through this process. A todo list, a single-function utility,
 
 You MUST create a task for each of these items and complete them in order:
 
-1. **Explore project context** — check files, docs, recent commits
+1. **Explore project context** — read `.haki/ROADMAP.md`, check existing specs/decisions/research
 2. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Write design doc** — save to `docs/specs/YYYY-MM-DD-<topic>-design.md` and commit
+6. **Write design doc** — save to `.haki/specs/YYYY-MM-DD-<topic>-design.md` and commit
 7. **Spec review loop** — dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix issues and re-dispatch until approved (max 3 iterations, then surface to human)
 8. **User reviews written spec** — ask user to review the spec file before proceeding
-9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+9. **Delta report** — detect and record design decisions, constraints, trade-offs into `.haki/` (see Delta Report section below)
+10. **Transition to implementation** — invoke writing-plans skill to create implementation plan
 
 ## Process Flow
 
@@ -46,6 +47,7 @@ digraph brainstorming {
     "Spec review loop" [shape=box];
     "Spec review passed?" [shape=diamond];
     "User reviews spec?" [shape=diamond];
+    "Delta report" [shape=box];
     "Invoke writing-plans skill" [shape=doublecircle];
 
     "Explore project context" -> "Visual questions ahead?";
@@ -62,7 +64,8 @@ digraph brainstorming {
     "Spec review passed?" -> "Spec review loop" [label="issues found,\nfix and re-dispatch"];
     "Spec review passed?" -> "User reviews spec?" [label="approved"];
     "User reviews spec?" -> "Write design doc" [label="changes requested"];
-    "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
+    "User reviews spec?" -> "Delta report" [label="approved"];
+    "Delta report" -> "Invoke writing-plans skill";
 }
 ```
 
@@ -111,7 +114,7 @@ digraph brainstorming {
 
 **Documentation:**
 
-- Write the validated design (spec) to `docs/specs/YYYY-MM-DD-<topic>-design.md`
+- Write the validated design (spec) to `.haki/specs/YYYY-MM-DD-<topic>-design.md`
   - (User preferences for spec location override this default)
 - Use elements-of-style:writing-clearly-and-concisely skill if available
 - Commit the design document to git
@@ -134,6 +137,58 @@ Wait for the user's response. If they request changes, make them and re-run the 
 
 - Invoke the writing-plans skill to create a detailed implementation plan
 - Do NOT invoke any other skill. writing-plans is the next step.
+
+## Delta Report (Step 9)
+
+After the spec is approved by the user (step 8), record every design decision, constraint, and trade-off into `.haki/`.
+
+### Pre-update git snapshot
+
+Before writing any files, create a git snapshot so the user can rollback:
+
+```bash
+git add .haki/ -m "brain: pre-update snapshot"
+```
+
+### What to record
+
+Record as delta when ANY of these occurs:
+- **New design decision** or constraint discovered
+- **Tech stack** choice made or changed
+- **Milestone or task** created
+- **Task status** changed
+
+### Where to write
+
+| Delta type | File path |
+|---|---|
+| Design spec (approved) | `.haki/specs/YYYY-MM-DD-<topic>-design.md` |
+| Decision + trade-offs | `.haki/decisions/YYYY-MM-DD-<decision>-adr.md` |
+| Research findings | `.haki/research/YYYY-MM-DD-<topic>-research.md` |
+| New milestone/task | Update `.haki/ROADMAP.md` + create `.haki/tasks/<slug>.md` |
+
+### How to write
+
+1. Write the doc(s) to `.haki/`
+2. Update `.haki/ROADMAP.md` — add link under the appropriate Knowledge Base section
+3. Commit the changes
+
+### Notification
+
+After writing, tell the user:
+
+> "Đã cập nhật `.haki/`:
+> - [list of files created/updated]
+> 
+> Rollback nếu cần: `git reset HEAD~1`"
+
+### Rollback
+
+If the user is not satisfied with the recorded delta:
+```bash
+git reset HEAD~1
+```
+This undoes the brain update commit. The files remain on disk but are unstaged — user can review and manually commit or discard.
 
 ## Key Principles
 
