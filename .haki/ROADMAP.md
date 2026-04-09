@@ -42,14 +42,13 @@
 **Mục tiêu:** Biến haki-skills thành project tự self-document, AI hiểu context từ `.haki/ROADMAP.md`.
 
 **Tasks:**
-- [ ] Update .gitignore — chỉ ignore `.haki/runtime/` và `.haki/ui/`
+- [x] Update .gitignore — chỉ ignore `.haki/runtime/` và `.haki/ui/`
 - [x] Update installer — tạo `.haki/` với cấu trúc mới
 - [x] Update brainstorming skill — thêm report step + `.haki/` paths
 - [x] Create `.haki/ROADMAP.md` — wiki hub cho chính dự án
 - [x] Create ADR — `.haki/` là project brain
 - [ ] Update writing-plans skill — thêm report step + `.haki/` paths
 - [ ] Update executing-plans skill — thêm report step + `.haki/` paths
-- [ ] Migrate spec doc từ `.haki/specs/` cũ → `.haki/specs/` mới
 
 ---
 
