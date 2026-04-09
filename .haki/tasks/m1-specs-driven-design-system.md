@@ -21,8 +21,9 @@ Biến haki-skills thành project tự self-document, AI hiểu context từ `.h
 | 3 | Update brainstorming skill — thêm report step + `.haki/` paths | ✅ |
 | 4 | Create `.haki/ROADMAP.md` — wiki hub cho chính dự án | ✅ |
 | 5 | Create ADR — `.haki/` là project brain | ✅ |
-| 6 | Update writing-plans skill — thêm report step + `.haki/` paths | ⏳ Pending |
-| 7 | Update executing-plans skill — thêm report step + `.haki/` paths | ⏳ Pending |
+| 6 | Update writing-plans skill — thêm report step + `.haki/` paths | ✅ |
+| 7 | Update executing-plans skill — thêm report step + `.haki/` paths | ✅ |
+| 8 | Review all skills — cập nhật đúng paths trong toàn bộ skills | ✅ |
 
 ---
 
@@ -32,4 +33,6 @@ Biến haki-skills thành project tự self-document, AI hiểu context từ `.h
 - `.haki/decisions/2026-04-09-haki-brain-location-adr.md` — ADR (created)
 - `.haki/specs/2026-04-09-specs-driven-design.md` — design spec (created)
 - `.haki/tasks/m1-specs-driven-design-system.md` — this file
-- Updated `.gitignore`, `bin/install.js`, `brainstorming/SKILL.md`
+- `.haki/specs/2026-03-24-user-docs-generator-design.md` — migrated
+- Updated: `.gitignore`, `bin/install.js`
+- Updated skills: `brainstorming`, `writing-plans`, `executing-plans`, `subagent-driven-development`, `swarm-dev-team`, `swarm-product-team`

@@ -37,7 +37,7 @@
 
 ## Milestones
 
-### [M1: Specs-Driven Design System](./tasks/m1-specs-driven-design-system.md) — ⏳ In Progress
+### [M1: Specs-Driven Design System](./tasks/m1-specs-driven-design-system.md) — ✅ Completed
 
 **Mục tiêu:** Biến haki-skills thành project tự self-document, AI hiểu context từ `.haki/ROADMAP.md`.
 
@@ -49,6 +49,7 @@
 - [x] Create ADR — `.haki/` là project brain
 - [x] Update writing-plans skill — thêm report step + `.haki/` paths
 - [x] Update executing-plans skill — thêm report step + `.haki/` paths
+- [x] Review all skills — cập nhật đúng paths trong toàn bộ skills
 
 ---
 
