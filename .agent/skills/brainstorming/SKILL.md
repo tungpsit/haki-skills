@@ -167,6 +167,27 @@ Record as delta when ANY of these occurs:
 | Research findings | `.haki/research/YYYY-MM-DD-<topic>-research.md` |
 | New milestone/task | Update `.haki/ROADMAP.md` + create `.haki/tasks/<slug>.md` |
 
+**Task doc format:** Lean reference only — task list + status + optional notes. Reference the spec via link. Do NOT duplicate Problem, Solution, Scope, or Deliverables from the spec. Template:
+
+```markdown
+# <Milestone Title>
+
+**Milestone:** <ID>
+**Status:** ⏳ Pending / ✅ Completed
+**Spec:** [.haki/specs/<file>](../specs/<file>)
+
+---
+
+## Tasks
+
+| # | Task | Status | Notes |
+|---|---|---|---|
+| 1 | ... | ⏳ | ... |
+
+## Notes
+_(Execution notes, blockers, learnings. Optional.)_
+```
+
 ### How to write
 
 1. Write the doc(s) to `.haki/`

@@ -18,6 +18,7 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 **Save plans to:** `.haki/tasks/YYYY-MM-DD-<feature-name>-plan.md`
 
 - (User preferences for plan location override this default)
+- Plans reference the spec — do NOT duplicate the spec's Problem, Solution, or Scope into the plan. The plan header links to the spec file; task body explains only the implementation steps.
 
 ## Scope Check
 
