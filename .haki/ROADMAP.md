@@ -53,10 +53,23 @@
 
 ---
 
+### [M2: Layout + Screen Flow + FE Doc](./tasks/m2-layout-screen-flow-design.md) — ⏳ Pending
+
+**Mục tiêu:** Tạo `haki:layout` skill cho layout design, screen flow, và FE documentation.
+
+**Tasks:**
+- [ ] Create `.agent/skills/layout-design/SKILL.md`
+- [ ] Create `.agent/workflows/haki-layout.md`
+- [ ] Update installer — thêm `layouts/` và `screens/` vào `.haki/`
+- [ ] Create M2 task doc
+
+---
+
 ## Knowledge Base
 
 ### Specs (newest first)
 
+- [2026-04-09-layout-screen-flow-design](./specs/2026-04-09-layout-screen-flow-design.md) — `haki:layout` skill cho layout + screen flow + FE docs
 - [2026-04-09-specs-driven-design](./specs/2026-04-09-specs-driven-design.md) — `.haki/` là project brain
 - [2026-03-24-user-docs-generator-design](./specs/2026-03-24-user-docs-generator-design.md) — Workflow tạo user guide
 
