@@ -570,7 +570,7 @@ Spawn two subagents in parallel. Both MUST follow TDD.
 
 5. **ADRs (Architecture Decision Records):**
    - Extract decisions from `.haki/reports/01-architect.md`
-   - Write to `docs/adr/NNN-decision-title.md`
+   - Write to `.haki/decisions/NNN-decision-title.md`
 
 **Output:** Write report to `.haki/reports/08-tech-writer.md`
 

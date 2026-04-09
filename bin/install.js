@@ -252,6 +252,8 @@ Examples:
     "decisions",
     "research",
     "tasks",
+    "reports",
+    "codebase",
     path.join("runtime", "ui", "runs"),
     path.join("runtime", "ui", "snapshots"),
     path.join("runtime", "brainstorm", "sessions"),
@@ -259,7 +261,7 @@ Examples:
   ]) {
     fs.mkdirSync(path.join(targetDir, ".haki", sub), { recursive: true });
   }
-  console.log("   ✅ .haki/ (specs/, decisions/, research/, tasks/, runtime/)");
+  console.log("   ✅ .haki/ (specs/, decisions/, research/, tasks/, reports/, codebase/, runtime/)");
 
   // Generate agent config files for selected agents (non-destructive)
   const agentConfigs = selectedAgents

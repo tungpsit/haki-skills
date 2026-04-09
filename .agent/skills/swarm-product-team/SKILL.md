@@ -229,7 +229,7 @@ Every subagent MUST write its report to `.haki/reports/NN-role.md` using this ex
    | `DESIGN.md` | ❌ Missing | Phase 3 Designer proposes new design system |
    | `docs/ARCHITECTURE.md` | ✅ Exists | Phase 3 Architect reviews and extends |
    | `docs/api-contract.md` | ✅ Exists | Phase 3 Architect reviews and extends |
-   | `docs/superpowers/specs/` | ✅ Has recent spec | Phase 4 Spec Writer references it |
+   | `.haki/specs/` | ✅ Has recent spec | Phase 4 Spec Writer references it |
    | `.haki/ROADMAP.md` | ✅ Exists | Phase 5 Planner extends it, adds new tasks |
 
 3. **Map existing codebase (if `.haki/codebase/` does not exist):**
@@ -264,7 +264,7 @@ Every subagent MUST write its report to `.haki/reports/NN-role.md` using this ex
    | DESIGN.md | ❌ Missing | PROPOSE — Designer creates in Phase 3 |
    | docs/ARCHITECTURE.md | ✅ Exists | REVIEW — Architect extends |
    | docs/api-contract.md | ✅ Exists | REVIEW — Architect extends |
-   | docs/superpowers/specs/* | ✅ Has recent | REFERENCE — Spec Writer consolidates |
+   | .haki/specs/* | ✅ Has recent | REFERENCE — Spec Writer consolidates |
    | .haki/ROADMAP.md | ✅ Exists | EXTEND — add new tasks |
    | .haki/ROADMAP.md | ❌ Missing | CREATE — Planner generates in Phase 5 |
    ```
@@ -533,7 +533,7 @@ Spawn Product Architect and UI/UX Designer in parallel.
    - For brownfield: reference existing artifacts, only document the NEW parts
 
 2. **Write the spec document:**
-   - Write to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
+   - Write to `.haki/specs/YYYY-MM-DD-<topic>-design.md`
    - Use the brainstorming skill's spec document format as reference
    - Scale sections to complexity: brief for simple projects, detailed for complex ones
 
@@ -554,7 +554,7 @@ Spawn Product Architect and UI/UX Designer in parallel.
    - If after 3 iterations issues remain, surface to user for guidance
 
 **Output:** Write report to `.haki/reports/05-spec-writer.md`
-**Final output:** `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
+**Final output:** `.haki/specs/YYYY-MM-DD-<topic>-design.md`
 
 ---
 
@@ -571,7 +571,7 @@ Spawn Product Architect and UI/UX Designer in parallel.
 - `.haki/prd.md`
 - `.haki/discovery.md` (brownfield — Phase 0)
 - `.haki/reports/05-spec-writer.md`
-- `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
+- `.haki/specs/YYYY-MM-DD-<topic>-design.md`
 - `.haki/ROADMAP.md` (brownfield — if exists)
 
 **Instructions:**
@@ -622,7 +622,7 @@ After Phase 5 completes, the handoff package is ready:
 ✅ .haki/PROJECT.md          — Vision, scope, constraints
 ✅ .haki/ROADMAP.md           — Task breakdown, milestones
 ✅ .haki/requirements.md      — Full requirements
-✅ docs/superpowers/specs/
+✅ .haki/specs/
     └── YYYY-MM-DD-<topic>-design.md  — Approved design spec
 ✅ docs/DESIGN.md             — Design system (created or extended)
 ✅ docs/ARCHITECTURE.md       — Architecture (created or extended)
@@ -757,7 +757,7 @@ Write report to .haki/reports/04-ui-ux-designer.md."
 # Phase 4
 "You are SPEC WRITER. Read .agent/skills/swarm-product-team/SKILL.md Phase 4.
 Load all Phase 1–3 reports and discovery.md.
-Write consolidated spec to docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md.
+Write consolidated spec to .haki/specs/YYYY-MM-DD-<topic>-design.md.
 Run spec review loop (max 3 iterations).
 Write report to .haki/reports/05-spec-writer.md."
 
@@ -770,7 +770,7 @@ Write report to .haki/reports/06-implementation-planner.md."
 
 # Confirm handoff
 "Review all Phase 0–5 outputs. Confirm .haki/PROJECT.md, .haki/ROADMAP.md,
-docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md, DESIGN.md exist.
+.haki/specs/YYYY-MM-DD-<topic>-design.md, DESIGN.md exist.
 Report which files were CREATED vs EXTENDED (brownfield).
 Prompt user to review the spec before running /swarm-dev-team."
 ```
