@@ -11,13 +11,15 @@
 
 ### ✅ M3: Structured Task Tracking System [Details](./tasks/m3-000-milestone.md)
 
+### ✅ M4: Skill Quality Validation System [Details](./tasks/m4-000-milestone.md)
+
 ## Quick Stats
 
-- ✅ Completed: 2
+- ✅ Completed: 3
 - 🔄 In Progress: 0
 - ⏳ Pending: 0
 - ❌ Blocked: 0
-- **Total: 2**
+- **Total: 3**
 
 ---
-*Generated at 2026-04-12T03:54:30.237Z by .haki/scripts/generate-roadmap.js*
+*Generated at 2026-04-12T04:15:07.145Z by .haki/scripts/generate-roadmap.js*
