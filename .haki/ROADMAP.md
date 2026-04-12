@@ -13,13 +13,15 @@
 
 ### ✅ M4: Skill Quality Validation System [Details](./tasks/m4-000-milestone.md)
 
+### ✅ M5: Skill Registry + CLI Integration [Details](./tasks/m5-000-milestone.md)
+
 ## Quick Stats
 
-- ✅ Completed: 3
+- ✅ Completed: 4
 - 🔄 In Progress: 0
 - ⏳ Pending: 0
 - ❌ Blocked: 0
-- **Total: 3**
+- **Total: 4**
 
 ---
-*Generated at 2026-04-12T04:15:07.145Z by .haki/scripts/generate-roadmap.js*
+*Generated at 2026-04-12T08:59:19.356Z by .haki/scripts/generate-roadmap.js*
