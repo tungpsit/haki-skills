@@ -1,0 +1,203 @@
+{
+  "skills": [
+    {
+      "name": "api-testing",
+      "description": "Use when setting up, writing, or running API integration tests. Vitest + fetch, manual assertions, seed data from JSON. TypeScript only.",
+      "path": ".agent/skills/api-testing/SKILL.md",
+      "templates": [
+        ".agent/skills/api-testing/templates/api-client.ts",
+        ".agent/skills/api-testing/templates/example.api.test.ts",
+        ".agent/skills/api-testing/templates/seed-data.json",
+        ".agent/skills/api-testing/templates/vitest.api.config.ts"
+      ],
+      "scripts": []
+    },
+    {
+      "name": "brainstorming",
+      "description": "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation.",
+      "path": ".agent/skills/brainstorming/SKILL.md",
+      "templates": [],
+      "scripts": [
+        ".agent/skills/brainstorming/scripts/frame-template.html",
+        ".agent/skills/brainstorming/scripts/helper.js",
+        ".agent/skills/brainstorming/scripts/server.cjs",
+        ".agent/skills/brainstorming/scripts/start-server.sh",
+        ".agent/skills/brainstorming/scripts/stop-server.sh"
+      ]
+    },
+    {
+      "name": "industrial-brutalist-ui",
+      "description": "Raw mechanical interfaces fusing Swiss typographic print with military terminal aesthetics. Rigid grids, extreme type scale contrast, utilitarian color, analog degradation effects. For data-heavy dashboards, portfolios, or editorial sites that need to feel like declassified blueprints.",
+      "path": ".agent/skills/brutalist-skill/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "context7-research",
+      "description": "Use when initializing a new project, choosing a tech stack, or adding a library — automatically fetches the latest docs and versions via Context7 MCP before writing any install commands or config files.",
+      "path": ".agent/skills/context7-research/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "dispatching-parallel-agents",
+      "description": "Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies",
+      "path": ".agent/skills/dispatching-parallel-agents/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "executing-plans",
+      "description": "Use when you have a written implementation plan to execute in a separate session with review checkpoints",
+      "path": ".agent/skills/executing-plans/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "layout-design",
+      "description": "Design UI layouts, screen navigation flows, and FE documentation. Use when you need to specify layout zones, wireframes, component inventory, or navigation flows for frontend developers.",
+      "path": ".agent/skills/layout-design/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "minimalist-ui",
+      "description": "Clean editorial-style interfaces. Warm monochrome palette, typographic contrast, flat bento grids, muted pastels. No gradients, no heavy shadows.",
+      "path": ".agent/skills/minimalist-skill/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "full-output-enforcement",
+      "description": "Overrides default LLM truncation behavior. Enforces complete code generation, bans placeholder patterns, and handles token-limit splits cleanly. Apply to any task requiring exhaustive, unabridged output.",
+      "path": ".agent/skills/output-skill/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "playwright-automation",
+      "description": "Use when setting up, writing, or running E2E tests with Playwright. Covers project init, Page Object Model, test patterns, and CI/CD integration. TypeScript only.",
+      "path": ".agent/skills/playwright-automation/SKILL.md",
+      "templates": [
+        ".agent/skills/playwright-automation/templates/base.fixture.ts",
+        ".agent/skills/playwright-automation/templates/example.page.ts",
+        ".agent/skills/playwright-automation/templates/example.spec.ts",
+        ".agent/skills/playwright-automation/templates/playwright.config.ts"
+      ],
+      "scripts": []
+    },
+    {
+      "name": "playwright-intent-to-spec",
+      "description": "generate playwright typescript spec files from vietnamese natural-language ui test instructions for projects using a page object model. use when a user describes a browser flow, action, or expected behavior in plain language and wants only a tests/*.spec.ts output. preserve pom boundaries, avoid inventing missing details, keep locators and implementation details out of the spec unless explicitly provided, and insert clear todo comments wherever routes, accounts, page object names, method names, or assertions are ambiguous.",
+      "path": ".agent/skills/playwright-intent-to-spec/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "redesign-existing-projects",
+      "description": "Upgrades existing websites and apps to premium quality. Audits current design, identifies generic AI patterns, and applies high-end design standards without breaking functionality. Works with any CSS framework or vanilla CSS.",
+      "path": ".agent/skills/redesign-skill/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "high-end-visual-design",
+      "description": "Teaches the AI to design like a high-end agency. Defines the exact fonts, spacing, shadows, card structures, and animations that make a website feel expensive. Blocks all the common defaults that make AI designs look cheap or generic.",
+      "path": ".agent/skills/soft-skill/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "stitch-design-taste",
+      "description": "Semantic Design System Skill for Google Stitch. Generates agent-friendly DESIGN.md files that enforce premium, anti-generic UI standards — strict typography, calibrated color, asymmetric layouts, perpetual micro-motion, and hardware-accelerated performance.",
+      "path": ".agent/skills/stitch-skill/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "subagent-driven-development",
+      "description": "Use when executing implementation plans with independent tasks in the current session",
+      "path": ".agent/skills/subagent-driven-development/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "swarm-dev-team",
+      "description": "Spawn a full software development team as parallel subagents, each with specialized roles and haki skills. Supports both greenfield and brownfield projects. Produces structured reports for tracking and review.",
+      "path": ".agent/skills/swarm-dev-team/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "swarm-product-team",
+      "description": "Orchestrate a product team of specialized subagents to transform raw ideas into approved design specs and implementation plans — ready to hand off to swarm-dev-team for execution. Supports both greenfield and brownfield projects.",
+      "path": ".agent/skills/swarm-product-team/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "systematic-debugging",
+      "description": "Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes",
+      "path": ".agent/skills/systematic-debugging/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "taste-research",
+      "description": "Reference research directory for design taste topics. Not a skill — see README.md for topic index.",
+      "path": ".agent/skills/taste-research/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "design-taste-frontend",
+      "description": "Senior UI/UX Engineer. Architect digital interfaces overriding default LLM biases. Enforces metric-based rules, strict component architecture, CSS hardware acceleration, and balanced design engineering.",
+      "path": ".agent/skills/taste-skill/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "test-driven-development",
+      "description": "Use when implementing any feature or bugfix, before writing implementation code",
+      "path": ".agent/skills/test-driven-development/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "ui-ux-pro-max",
+      "description": "AI-powered design intelligence with searchable databases of UI styles, color palettes, font pairings, chart types, and UX guidelines",
+      "path": ".agent/skills/ui-ux-pro-max/SKILL.md",
+      "templates": [
+        ".agent/skills/ui-ux-pro-max/templates/base",
+        ".agent/skills/ui-ux-pro-max/templates/platforms"
+      ],
+      "scripts": [
+        ".agent/skills/ui-ux-pro-max/scripts/core.py",
+        ".agent/skills/ui-ux-pro-max/scripts/design_system.py",
+        ".agent/skills/ui-ux-pro-max/scripts/search.py"
+      ]
+    },
+    {
+      "name": "user-docs-generator",
+      "description": "Generate end-user documentation for project modules. Creates visual guides with screenshots, Mermaid flow diagrams, step-by-step instructions, field references, and FAQ sections.",
+      "path": ".agent/skills/user-docs-generator/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "verification-before-completion",
+      "description": "Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always",
+      "path": ".agent/skills/verification-before-completion/SKILL.md",
+      "templates": [],
+      "scripts": []
+    },
+    {
+      "name": "writing-plans",
+      "description": "Use when you have a spec or requirements for a multi-step task, before touching code",
+      "path": ".agent/skills/writing-plans/SKILL.md",
+      "templates": [],
+      "scripts": []
+    }
+  ],
+  "generated": "2026-04-12T05:47:20.554Z"
+}

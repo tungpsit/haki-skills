@@ -85,6 +85,7 @@ const {
   cmdRoadmapUpdateStatus,
 } = require("./lib/roadmap.cjs");
 const { cmdStateDetect, cmdStateJson } = require("./lib/state.cjs");
+const { cmdSkill } = require("./lib/skill.cjs");
 
 function main() {
   const args = process.argv.slice(2);
@@ -150,6 +151,12 @@ function main() {
             error("Usage: roadmap <analyze|next-task|update-status> [args]");
         }
       });
+      break;
+    }
+
+    // ─── Skill ───────────────────────────────────────────────────────
+    case "skill": {
+      cmdSkill(subCommand, restArgs[0]);
       break;
     }
 
